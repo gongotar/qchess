@@ -142,7 +142,7 @@ Validator::MoveType Validator::isLegalMove(const Square *fromSquare, const Squar
         return IllegalMove;
     }
 
-    // en pasaunt!
+    // EnPassant!
     // pawn promotion
     // show selection
     // show move
@@ -156,6 +156,7 @@ Validator::MoveType Validator::isLegalMove(const Square *fromSquare, const Squar
     // draw by 50 moves
     // mate
     // stale mate
+    // ensure squares at resize
 }
 
 bool Validator::isInCheck (Square* from, Square* to, Square* king) noexcept

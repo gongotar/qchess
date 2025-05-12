@@ -19,7 +19,7 @@ Window {
             delegate: Rectangle {
                 width: grid.width / 8
                 height: grid.height / 8
-                color: (row + col) % 2 === 0 ? "white" : "sienna"
+                color: (row + col) % 2 === 0 ? "white" : "darkgoldenrod"
                 Text {
                     anchors.centerIn: parent
                     text: piece
