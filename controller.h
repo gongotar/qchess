@@ -4,10 +4,9 @@
 #include <QObject>
 #include "validator.h"
 #include "pieces.h"
+#include "gamestate.h"
 
 class Board;
-class Square;
-
 
 class Controller: public QObject
 {
@@ -20,10 +19,9 @@ private:
 
     const Board* m_board;
     Validator m_validator;
-    Square* m_whiteKing;
-    Square* m_blackKing;
+    std::optional<Square*> m_from;
+    GameState m_states[2];
     Pieces::Color m_turnColor = Pieces::Color::White;
-    std::optional<Square*> m_prevSelected;
 };
 
 #endif // CONTROLLER_H

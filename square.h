@@ -3,10 +3,6 @@
 
 #include <QObject>
 
-namespace {
-class SimulatorScope;
-}
-
 class Square: public QObject
 {
     Q_OBJECT
@@ -22,20 +18,24 @@ public:
         m_piece(p) {
     }
 
-    int row() const {return m_row;}
-    int col() const {return m_col;}
-    QChar piece() const {return m_piece;}
+    int row() const noexcept {return m_row;}
+    int col() const noexcept {return m_col;}
+    QChar piece() const noexcept {return m_piece;}
     void setPiece(const QChar &piece)
     {
         m_piece = piece;
         emit pieceChanged();
     }
 
+    void setPieceQuitely(const QChar &piece)
+    {
+        m_piece = piece;
+    }
+
 signals:
     void pieceChanged();
 
 private:
-    friend class SimulatorScope;
     const int m_row;
     const int m_col;
     QChar m_piece;

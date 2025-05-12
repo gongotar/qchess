@@ -2,6 +2,7 @@
 #include "square.h"
 #include "board.h"
 #include "pieces.h"
+#include "gamestate.h"
 
 namespace {
     bool canThreaten(const QChar& piece, const std::pair<int, int>& dir, int distance) noexcept
@@ -27,9 +28,39 @@ namespace {
             return false;
         }
     }
+
+    class Simulator
+    {
+        Square* m_from;
+        Square* m_to;
+        Square* m_king;
+        const QChar m_to_piece;
+    public:
+        Simulator(Square* from, Square* to, Square* king):
+            m_from(from),
+            m_to(to),
+            m_king (king),
+            m_to_piece(to->piece())
+        {
+            if (from == king)
+                m_king = to;
+            to->setPieceQuitely(from->piece());
+            if (from != to)
+                from->setPieceQuitely(Pieces::Empty);
+        }
+        const Square* king() const noexcept
+        {
+            return m_king;
+        }
+        ~Simulator() noexcept
+        {
+            m_from->setPieceQuitely(m_to->piece());
+            m_to->setPieceQuitely(m_to_piece);
+        }
+    };
 }
 
-bool Validator::isLegalMove(const Square *fromSquare, const Square *targetSquare)
+Validator::MoveType Validator::isLegalMove(const Square *fromSquare, const Square *targetSquare, const GameState& gameState) noexcept
 {
     const int dr = targetSquare->row() - fromSquare->row();
     const int dc = targetSquare->col() - fromSquare->col();
@@ -42,58 +73,75 @@ bool Validator::isLegalMove(const Square *fromSquare, const Square *targetSquare
     {
         const bool emptyTarget = targetSquare->piece() == Pieces::Empty;
         if (dc == 0 && dr == 1 && emptyTarget)
-            return true;
+            return NormalMove;
         if (dc == 0 && dr == 2
             && fromSquare->row() == 1
             && emptyTarget
             && isPathClear(fromSquare, targetSquare))
-            return true;
+            return NormalMove;
         if (absDc == 1 && dr == 1 && !emptyTarget)
-            return true;
-        return false;
+            return NormalMove;
+        return IllegalMove;
     }
     case Pieces::WhitePawnCode:
     {
         const bool emptyTarget = targetSquare->piece() == Pieces::Empty;
         if (dc == 0 && dr == -1 && emptyTarget)
-            return true;
+            return NormalMove;
         if (dc == 0 && dr == -2
             && fromSquare->row() == 6
             && emptyTarget
             && isPathClear(fromSquare, targetSquare))
-            return true;
+            return NormalMove;
         if (absDc == 1 && dr == -1 && !emptyTarget)
-            return true;
-        return false;
+            return NormalMove;
+        return IllegalMove;
     }
     case Pieces::BlackKnightCode:
     case Pieces::WhiteKnightCode:
-        return (absDr == 2 && absDc == 1) || (absDr == 1 && absDc == 2);
+        return (absDr == 2 && absDc == 1) || (absDr == 1 && absDc == 2) ? NormalMove: IllegalMove;
 
     case Pieces::BlackBishopCode:
     case Pieces::WhiteBishopCode:
-        return absDr == absDc && isPathClear(fromSquare, targetSquare);
+        return absDr == absDc && isPathClear(fromSquare, targetSquare) ? NormalMove: IllegalMove;
         ;
 
     case Pieces::BlackRookCode:
     case Pieces::WhiteRookCode:
         return (dr == 0 || dc == 0) && (dr != 0 || dc != 0)
-               && isPathClear(fromSquare, targetSquare);
+               && isPathClear(fromSquare, targetSquare) ? NormalMove: IllegalMove;
 
     case Pieces::BlackQueenCode:
     case Pieces::WhiteQueenCode:
         return (absDr == absDc) || (dr == 0 || dc == 0)
-                                       && isPathClear(fromSquare, targetSquare);
+                                       && isPathClear(fromSquare, targetSquare) ? NormalMove: IllegalMove;
 
     case Pieces::BlackKingCode:
     case Pieces::WhiteKingCode:
-        return absDr <= 1 && absDc <= 1 && (dr != 0 || dc != 0);
+    {
+        if (absDr <= 1 && absDc <= 1 && (dr != 0 || dc != 0))
+            return NormalMove;
+        if (dr == 0 && absDc == 2) {
+            const bool kingSide = dc == 2;
 
-    default:
-        return false;
+            if ((kingSide && !gameState.m_kingSideCastleRight) ||
+                (!kingSide && !gameState.m_queenSideCastleRight))
+                return IllegalMove;
+            const int row = fromSquare->row();
+            int rookCol = kingSide ? 7 : 0;
+            Square* rookSquare = m_board->at(row, rookCol);
+
+            if (!isPathClear(fromSquare, rookSquare))
+                return IllegalMove;
+
+            return kingSide? CastleKingSide: CastleQueenSide;
+        }
     }
 
-    // castle (if king / rook not moved)
+    default:
+        return IllegalMove;
+    }
+
     // en pasaunt!
     // pawn promotion
     // show selection
@@ -110,11 +158,12 @@ bool Validator::isLegalMove(const Square *fromSquare, const Square *targetSquare
     // stale mate
 }
 
-bool Validator::isInCheck (const Square* king)
+bool Validator::isInCheck (Square* from, Square* to, Square* king) noexcept
 {
-    const int kingRow = king->row();
-    const int kingCol = king->col();
-    const Pieces::Color kingColor = Pieces::pieceColor(king->piece());
+    Simulator sim(from, to, king);
+    const int kingRow = sim.king()->row();
+    const int kingCol = sim.king()->col();
+    const Pieces::Color kingColor = Pieces::pieceColor(sim.king()->piece());
 
     static const std::vector<std::pair<int, int>> directions = {
         { -1,  0 }, // up
@@ -162,6 +211,25 @@ bool Validator::isInCheck (const Square* king)
             return true;
     }
 
+    return false;
+}
+
+class TmpMove
+{
+
+};
+
+bool Validator::isCastlePathInCheck(Square *king, MoveType moveType) noexcept
+{
+    const Square* rook = m_board->at(king->row(), moveType == CastleKingSide? 7: 0);
+    const int col1 = rook->col();
+    const int col2 = king->col();
+    const int step = col2 > col1? 1:-1;
+    for (int i = col1 + step; i != col2 + step; i+=step) {
+        Square* movedKing = m_board->at(king->row(), i);
+        if (isInCheck(king, movedKing, king))
+            return true;
+    }
     return false;
 }
 

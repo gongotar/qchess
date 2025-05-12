@@ -37,8 +37,8 @@ namespace Pieces
 
     enum Color: int
     {
-        Black = 0,
-        White,
+        White = 0,
+        Black,
         None,
     };
 

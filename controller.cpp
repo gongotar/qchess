@@ -23,53 +23,15 @@ Action selectionAction(const std::optional<Square*>& m_prev, const Square* curre
         return Reset;
     return SelectTarget;
 }
-
-class SimulatorScope
-{
-    Square* m_from;
-    Square* m_to;
-    Square** m_king;
-    const QChar m_from_piece, m_to_piece;
-public:
-    SimulatorScope(Square* from, Square* to, Square** king):
-        m_from(from),
-        m_from_piece(from->piece()),
-        m_to(to),
-        m_to_piece(to->piece()),
-        m_king (king)
-    {
-        if (from == *king)
-            *king = to;
-        to->m_piece = from->piece();
-        from->m_piece = Pieces::Empty;
-    }
-    const Square* king() const noexcept
-    {
-        return *m_king;
-    }
-    ~SimulatorScope()
-    {
-        m_to->m_piece = m_to_piece;
-        m_from->m_piece = m_from_piece;
-        if (*m_king == m_to)
-            *m_king = m_from;
-    }
-};
-
-[[nodiscard]] SimulatorScope simulateMove(Square* from, Square* to, Square** king) noexcept
-{
-    return {from, to, king};
-}
-
 }
 
 Controller::Controller(Board *board, QObject *parent) :
     QObject(parent),
     m_board (board),
-    m_validator(board),
-    m_whiteKing(m_board->at(7, 4)),
-    m_blackKing(m_board->at(0, 4))
+    m_validator(board)
 {
+    m_states[Pieces::White].m_king = m_board->at(7, 4);
+    m_states[Pieces::Black].m_king = m_board->at(0, 4);
 }
 
 void Controller::selectOrMovePiece(int row, int col)
@@ -77,32 +39,68 @@ void Controller::selectOrMovePiece(int row, int col)
     if (row < 0 || row >= 8 || col < 0 || col >= 8)
         return;
 
-    bool move = false;
-    Square* currentSquare = m_board->at(row, col);
-    if (Action act = selectionAction(m_prevSelected, currentSquare, m_turnColor);
-        act == Reset)
-        m_prevSelected.reset();
-    else if (act == SelectSource)
-        m_prevSelected.emplace(currentSquare);
-    else if (!m_validator.isLegalMove(*m_prevSelected, currentSquare))
-        m_prevSelected.reset();
-    else if (SimulatorScope sim = simulateMove(*m_prevSelected,
-                                               currentSquare,
-                                               m_turnColor == Pieces::White? &m_whiteKing: &m_blackKing);
-             m_validator.isInCheck(sim.king()))
-        m_prevSelected.reset();
-    else
-        move = true;
-
-    if (!move)
+    Validator::MoveType moveType;
+    Square* to = m_board->at(row, col);
+    if (Action act = selectionAction(m_from, to, m_turnColor);
+        act == Reset) {
+        m_from.reset();
         return;
+    }
+    else if (act == SelectSource) {
+        m_from.emplace(to);
+        return;
+    }
+    else if (moveType = m_validator.isLegalMove(*m_from, to, m_states[m_turnColor]);
+               moveType == Validator::IllegalMove) {
+        m_from.reset();
+        return;
+    }
+    else if ((moveType == Validator::CastleKingSide || moveType == Validator::CastleQueenSide)
+               && m_validator.isCastlePathInCheck(m_from.value(), moveType)) {
+        m_from.reset();
+        return;
+    }
+    else if ((moveType == Validator::NormalMove || moveType == Validator::EnPassant)
+               && m_validator.isInCheck(*m_from, to, m_states[m_turnColor].m_king)) {
+        m_from.reset();
+        return;
+    }
 
-    currentSquare->setPiece(m_prevSelected.value()->piece());
-    m_prevSelected.value()->setPiece(Pieces::Empty);
-    Square** king = m_turnColor == Pieces::White? &m_whiteKing: &m_blackKing;
-    if (*m_prevSelected == *king)
-        *king = currentSquare;
-    m_prevSelected.reset();
+    Square* from = *m_from;
+    if (from == m_states[m_turnColor].m_king) {
+        m_states[m_turnColor].m_king = to;
+        m_states[m_turnColor].m_kingSideCastleRight = false;
+        m_states[m_turnColor].m_queenSideCastleRight = false;
+    }
+
+    if (from->piece() == Pieces::WhiteRook || from->piece() == Pieces::BlackRook) {
+        if (from->col() == 0)
+            m_states[m_turnColor].m_queenSideCastleRight = false;
+        else if (from->col() == 7)
+            m_states[m_turnColor].m_kingSideCastleRight = false;
+    }
+
+
+    to->setPiece(from->piece());
+    from->setPiece(Pieces::Empty);
+
+    if (moveType == Validator::CastleKingSide) {
+        Square* rookFrom = m_board->at(from->row(), 7);
+        Square* rookTo = m_board->at(from->row(), 5);
+        rookTo->setPiece(rookFrom->piece());
+        rookFrom->setPiece(Pieces::Empty);
+    }
+    else if (moveType == Validator::CastleQueenSide) {
+        Square* rookFrom = m_board->at(from->row(), 0);
+        Square* rookTo = m_board->at(from->row(), 3);
+        rookTo->setPiece(rookFrom->piece());
+        rookFrom->setPiece(Pieces::Empty);
+    }
+    else if (moveType == Validator::EnPassant) {
+
+    }
+
+    m_from.reset();
     m_turnColor = static_cast<Pieces::Color>(1 - static_cast<int>(m_turnColor));
 }
 
