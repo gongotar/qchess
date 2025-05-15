@@ -1,6 +1,9 @@
 #ifndef VALIDATOR_H
 #define VALIDATOR_H
 
+#include <QList>
+#include <QSet>
+
 class Board;
 class Square;
 class GameState;
@@ -8,20 +11,11 @@ class GameState;
 class Validator
 {
 public:
-
-    enum MoveType
-    {
-        NormalMove,
-        IllegalMove,
-        CastleQueenSide,
-        CastleKingSide,
-        EnPassant
-    };
-
     Validator(const Board* board): m_board (board) {}
-    MoveType isLegalMove(const Square* fromSquare, const Square* targetSquare, const GameState&) noexcept;
-    bool isInCheck(Square* from, Square* to, Square* king) noexcept;
-    bool isCastlePathInCheck(Square* king, MoveType moveType) noexcept;
+    bool isInCheck(Square* from, Square* to, Square* king) const noexcept;
+    bool isCastlePathInCheck(Square* king, int direction) const noexcept;
+    QList<Square*> getLegalTargets(Square* from, const GameState& state) const;
+    QSet<Square*> getNotInCheck(Square* from, const QList<Square*>& targets, const GameState&) const;
 private:
     bool isPathClear(const Square* from, const Square* to) const noexcept;
 

@@ -10,6 +10,8 @@ class Square: public QObject
     Q_PROPERTY(int row READ row CONSTANT)
     Q_PROPERTY(int col READ col CONSTANT)
     Q_PROPERTY(QChar piece READ piece WRITE setPiece NOTIFY pieceChanged)
+    Q_PROPERTY(bool isLegalDestination READ isLegalDestination WRITE setLegalDestination NOTIFY legalDestinationChanged)
+    Q_PROPERTY(bool highlight READ highlight WRITE setHighlight NOTIFY highlightChanged)
 
 public:
     Square(int r, int c, const QChar &p, QObject *parent = nullptr): QObject(parent),
@@ -32,13 +34,33 @@ public:
         m_piece = piece;
     }
 
+    bool isLegalDestination() const { return m_isLegalDestination; }
+    void setLegalDestination(bool value) {
+        if (m_isLegalDestination != value) {
+            m_isLegalDestination = value;
+            emit legalDestinationChanged();
+        }
+    }
+
+    bool highlight() const { return m_highlight; }
+    void setHighlight(bool value) {
+        if (m_highlight != value) {
+            m_highlight = value;
+            emit highlightChanged();
+        }
+    }
+
 signals:
     void pieceChanged();
+    void legalDestinationChanged();
+    void highlightChanged();
 
 private:
     const int m_row;
     const int m_col;
     QChar m_piece;
+    bool m_isLegalDestination = false;
+    bool m_highlight;
 };
 
 #endif // SQUARE_H

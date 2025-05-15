@@ -7,29 +7,46 @@ Window {
     width: 400
     height: 400
     title: "Chess"
-
-    Grid {
+    FontLoader {
+        id: chessFont
+        source: "Alpha.ttf"
+    }
+    GridView {
         id: grid
-        columns: 8
-        rows: 8
         anchors.fill: parent
         anchors.margins: 10
-        Repeater {
-            model: board
-            delegate: Rectangle {
-                width: grid.width / 8
-                height: grid.height / 8
-                color: (row + col) % 2 === 0 ? "white" : "darkgoldenrod"
-                Text {
-                    anchors.centerIn: parent
-                    text: piece
-                    font.pixelSize: 48
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        controller.selectOrMovePiece(row, col)
-                    }
+        cellWidth: width / 8
+        cellHeight: height / 8
+        model: board
+        delegate: Rectangle {
+            width: grid.width / 8
+            height: grid.height / 8
+            color: (row + col) % 2 === 0 ? "white" : "darkgoldenrod"
+            Rectangle {
+                visible: highlight
+                anchors.fill: parent
+                color: "gold"
+                opacity: 0.2
+            }
+            Rectangle {
+                visible: isLegalDestination
+                anchors.centerIn: parent
+                width: parent.width * 0.4
+                height: parent.height * 0.4
+                radius: width / 2
+                color: "black"
+                opacity: 0.5
+            }
+            Text {
+                anchors.centerIn: parent
+                text: piece
+                font.pixelSize: 42
+                font.family: chessFont.name
+            }
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    controller.selectOrMovePiece(row, col)
                 }
             }
         }

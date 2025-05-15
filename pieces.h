@@ -7,19 +7,19 @@ namespace Pieces
 {
     constexpr QChar Empty       = QChar(' ');
 
-    constexpr char16_t WhiteKingCode   = 0x2654;
-    constexpr char16_t WhiteQueenCode  = 0x2655;
-    constexpr char16_t WhiteRookCode   = 0x2656;
-    constexpr char16_t WhiteBishopCode = 0x2657;
-    constexpr char16_t WhiteKnightCode = 0x2658;
-    constexpr char16_t WhitePawnCode   = 0x2659;
+    constexpr char16_t WhiteKingCode   = 'k';
+    constexpr char16_t WhiteQueenCode  = 'q';
+    constexpr char16_t WhiteRookCode   = 'r';
+    constexpr char16_t WhiteBishopCode = 'b';
+    constexpr char16_t WhiteKnightCode = 'h';
+    constexpr char16_t WhitePawnCode   = 'p';
 
-    constexpr char16_t BlackKingCode   = 0x265A;
-    constexpr char16_t BlackQueenCode  = 0x265B;
-    constexpr char16_t BlackRookCode   = 0x265C;
-    constexpr char16_t BlackBishopCode = 0x265D;
-    constexpr char16_t BlackKnightCode = 0x265E;
-    constexpr char16_t BlackPawnCode   = 0x265F;
+    constexpr char16_t BlackKingCode   = 'l';
+    constexpr char16_t BlackQueenCode  = 'w';
+    constexpr char16_t BlackRookCode   = 't';
+    constexpr char16_t BlackBishopCode = 'n';
+    constexpr char16_t BlackKnightCode = 'j';
+    constexpr char16_t BlackPawnCode   = 'o';
 
     constexpr QChar WhiteKing   = QChar(WhiteKingCode);
     constexpr QChar WhiteQueen  = QChar(WhiteQueenCode);
@@ -44,12 +44,24 @@ namespace Pieces
 
     inline Color pieceColor(const QChar &piece) noexcept
     {
-        const ushort code = piece.unicode();
-        if (code >= BlackKing && code <= BlackPawn)
-            return Black;
-        else if (code >= WhiteKing && code <= WhitePawn)
-            return White;
-        return None;
+        switch(ushort code = piece.unicode()) {
+            case WhiteKingCode:
+            case WhiteQueenCode:
+            case WhiteRookCode:
+            case WhiteBishopCode:
+            case WhiteKnightCode:
+            case WhitePawnCode:
+                return White;
+            case BlackKingCode:
+            case BlackQueenCode:
+            case BlackRookCode:
+            case BlackBishopCode:
+            case BlackKnightCode:
+            case BlackPawnCode:
+                return Black;
+            default:
+                return None;
+        }
     }
 }
 

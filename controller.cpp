@@ -39,29 +39,27 @@ void Controller::selectOrMovePiece(int row, int col)
     if (row < 0 || row >= 8 || col < 0 || col >= 8)
         return;
 
-    Validator::MoveType moveType;
-    Square* to = m_board->at(row, col);
+    Square* selected = m_board->at(row, col);
+    if (m_prevMove) {
+        m_prevMove->first->setHighlight(false);
+        m_prevMove->second->setHighlight(false);
+        m_prevMove.reset();
+    }
 
-    if (Action act = selectionAction(m_from, to, m_turnColor); act == Reset)
-        m_from.reset();
-    else if (act == SelectSource)
-        m_from.emplace(to);
-    else if (moveType = m_validator.isLegalMove(*m_from, to, m_states[m_turnColor]);
-               moveType == Validator::IllegalMove)
-        m_from.reset();
-    else if ((moveType == Validator::CastleKingSide || moveType == Validator::CastleQueenSide)
-               && m_validator.isCastlePathInCheck(m_from.value(), moveType))
-        m_from.reset();
-    else if ((moveType == Validator::NormalMove || moveType == Validator::EnPassant)
-               && m_validator.isInCheck(*m_from, to, m_states[m_turnColor].m_king))
-        m_from.reset();
-    else {
+    if (!m_from) {
+        if (Pieces::pieceColor(selected->piece()) != m_turnColor)
+            return;
+        QList <Square*> targets = m_validator.getLegalTargets(selected, m_states[m_turnColor]);
+        m_targets = m_validator.getNotInCheck(selected, targets, m_states[m_turnColor]);
+        for (Square* sq : std::as_const(m_targets))
+            sq->setLegalDestination(true);
+        m_from.emplace(selected);
+        selected->setHighlight(true);
+        return;
+    }
+    else if (m_targets.contains(selected)) {
+        Square* to = selected;
         Square* from = *m_from;
-        if (from == m_states[m_turnColor].m_king) {
-            m_states[m_turnColor].m_king = to;
-            m_states[m_turnColor].m_kingSideCastleRight = false;
-            m_states[m_turnColor].m_queenSideCastleRight = false;
-        }
 
         if (from->piece() == Pieces::WhiteRook || from->piece() == Pieces::BlackRook) {
             if (from->col() == 0)
@@ -73,24 +71,35 @@ void Controller::selectOrMovePiece(int row, int col)
         to->setPiece(from->piece());
         from->setPiece(Pieces::Empty);
 
-        if (moveType == Validator::CastleKingSide) {
+        if (from == m_states[m_turnColor].m_king && to->col() - from->col() == 2) {
             Square* rookFrom = m_board->at(from->row(), 7);
             Square* rookTo = m_board->at(from->row(), 5);
             rookTo->setPiece(rookFrom->piece());
             rookFrom->setPiece(Pieces::Empty);
         }
-        else if (moveType == Validator::CastleQueenSide) {
+        else if (from == m_states[m_turnColor].m_king && to->col() - from->col() == -2) {
             Square* rookFrom = m_board->at(from->row(), 0);
             Square* rookTo = m_board->at(from->row(), 3);
             rookTo->setPiece(rookFrom->piece());
             rookFrom->setPiece(Pieces::Empty);
         }
-        else if (moveType == Validator::EnPassant) {
+        //else if (moveType == Validator::EnPassant) {
 
+        //}
+
+        if (from == m_states[m_turnColor].m_king) {
+            m_states[m_turnColor].m_king = to;
+            m_states[m_turnColor].m_kingSideCastleRight = false;
+            m_states[m_turnColor].m_queenSideCastleRight = false;
         }
-
-        m_from.reset();
         m_turnColor = static_cast<Pieces::Color>(1 - static_cast<int>(m_turnColor));
+        to->setHighlight(true);
+        m_prevMove.emplace(from, to);
     }
-}
 
+    for (Square* sq : std::as_const(m_targets))
+        sq->setLegalDestination(false);
+    m_from.reset();
+    m_targets.clear();
+
+}
