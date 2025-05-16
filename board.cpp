@@ -47,6 +47,10 @@ void Board::init()
                 QModelIndex idx = createIndex(row * 8 + col, 0);
                 emit dataChanged(idx, idx, {HighlightRole});
             });
+            connect(square, &Square::isSelectedChanged, this, [this, row, col]() {
+                QModelIndex idx = createIndex(row * 8 + col, 0);
+                emit dataChanged(idx, idx, {IsSelectedRole});
+            });
             m_squares[row][col] = square;
         }
     }
@@ -65,6 +69,7 @@ QVariant Board::data(const QModelIndex &index, int role) const noexcept
         case PieceRole: return sq->piece();
         case IsLegalDestinationRole: return sq->isLegalDestination();
         case HighlightRole: return sq->highlight();
+        case IsSelectedRole: return sq->isSelected();
     }
 
     return QVariant();
@@ -77,6 +82,7 @@ QHash<int, QByteArray> Board::roleNames() const noexcept
         { ColRole, "col" },
         { PieceRole, "piece" },
         { IsLegalDestinationRole, "isLegalDestination" },
-        { HighlightRole, "highlight" }
+        { HighlightRole, "highlight" },
+        { IsSelectedRole, "isSelected" }
     };
 }

@@ -10,7 +10,7 @@ class Board: public QAbstractListModel
 {
     Q_OBJECT
 public:
-    enum Roles { RowRole = Qt::UserRole + 1, ColRole, PieceRole, IsLegalDestinationRole, HighlightRole };
+    enum Roles { RowRole = Qt::UserRole + 1, ColRole, PieceRole, IsLegalDestinationRole, HighlightRole, IsSelectedRole };
 
     Board(QObject *parent = nullptr);
 

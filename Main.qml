@@ -26,7 +26,13 @@ Window {
                 visible: highlight
                 anchors.fill: parent
                 color: "gold"
-                opacity: 0.2
+                opacity: 0.12
+            }
+            Rectangle {
+                visible: isSelected
+                anchors.fill: parent
+                color: "blue"
+                opacity: 0.18
             }
             Rectangle {
                 visible: isLegalDestination
