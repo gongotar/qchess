@@ -30,7 +30,7 @@ Window {
                 visible: highlight
                 anchors.fill: parent
                 color: "gold"
-                opacity: 0.18
+                opacity: 0.2
             }
             Rectangle {
                 visible: isSelected

@@ -166,7 +166,7 @@ bool Validator::isPathClear(const Square *from, const Square *to) const noexcept
     return true;
 }
 
-QList<Square *> Validator::getLegalTargets(Square *from, bool kingSideCastleRight, bool queenSideCastleRight) const
+QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state) const
 {
     QList<Square*> moves;
 
@@ -198,11 +198,14 @@ QList<Square *> Validator::getLegalTargets(Square *from, bool kingSideCastleRigh
         if (isInsideBoard(row + direction, col) && m_board->at(row + direction, col)->piece() == Pieces::Empty)
             moves.append(m_board->at(row + direction, col));
 
-        // Two forward
         if (row == startRow &&
             m_board->at(row + direction, col)->piece() == Pieces::Empty &&
-            m_board->at(row + 2 * direction, col)->piece() == Pieces::Empty)
+            m_board->at(row + 2 * direction, col)->piece() == Pieces::Empty) // Two forward
             moves.append(m_board->at(row + 2 * direction, col));
+        else if (state.m_enPassantTarget
+                 && std::abs(col - state.m_enPassantTarget->col()) == 1
+                 && row == (7 + direction) / 2) // en passant
+            moves.append(state.m_enPassantTarget);
 
         // Capture diagonally
         for (const int dc : {-1, 1}) {
@@ -214,6 +217,7 @@ QList<Square *> Validator::getLegalTargets(Square *from, bool kingSideCastleRigh
                     moves.append(target);
             }
         }
+
         break;
     }
     case Pieces::WhiteKnightCode:
@@ -277,9 +281,9 @@ QList<Square *> Validator::getLegalTargets(Square *from, bool kingSideCastleRigh
             }
         }
 
-        if (kingSideCastleRight && isPathClear(from, m_board->at(row, 7)))
+        if (state.m_kingSideCastleRight && isPathClear(from, m_board->at(row, 7)))
             moves.append(m_board->at(row, 6));
-        if (queenSideCastleRight && isPathClear(from, m_board->at(row, 0)))
+        if (state.m_queenSideCastleRight && isPathClear(from, m_board->at(row, 0)))
             moves.append(m_board->at(row, 2));
 
         break;

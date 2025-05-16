@@ -19,7 +19,7 @@ private:
 
     const Board* m_board;
     Validator m_validator;
-    std::optional<Square*> m_from;
+    Square* m_from;
     std::optional<std::pair<Square*, Square*>> m_prevMove;
     QSet <Square*> m_targets;
     GameState m_states[2];
