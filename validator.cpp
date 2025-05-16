@@ -72,7 +72,6 @@ namespace {
 // draw by 50 moves
 // mate
 // stale mate
-// ensure squares at resize
 // undo
 
 bool Validator::isInCheck (Square* from, Square* to, Square* king) const noexcept

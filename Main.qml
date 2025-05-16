@@ -1,12 +1,16 @@
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
 
 Window {
+    title: "Chess"
     visible: true
     width: 400
     height: 400
-    title: "Chess"
+    onWidthChanged: {
+        height = width
+    }
+    onHeightChanged: {
+        width = height
+    }
     FontLoader {
         id: chessFont
         source: "Alpha.ttf"
@@ -26,7 +30,7 @@ Window {
                 visible: highlight
                 anchors.fill: parent
                 color: "gold"
-                opacity: 0.12
+                opacity: 0.18
             }
             Rectangle {
                 visible: isSelected
@@ -46,7 +50,7 @@ Window {
             Text {
                 anchors.centerIn: parent
                 text: piece
-                font.pixelSize: 42
+                font.pixelSize: parent.width * 0.9
                 font.family: chessFont.name
             }
             MouseArea {
