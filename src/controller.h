@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSet>
 #include "validator.h"
+#include "moveexecutor.h"
 #include "pieces.h"
 #include "gamestate.h"
 
@@ -19,6 +20,7 @@ private:
 
     const Board* m_board;
     Validator m_validator;
+    MoveExecutor m_moveExec;
     Square* m_from;
     std::optional<std::pair<Square*, Square*>> m_prevMove;
     QSet <Square*> m_targets;

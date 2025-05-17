@@ -9,22 +9,29 @@ find_package(Qt6 REQUIRED COMPONENTS Quick)
 qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(appqchess
-    main.cpp
+    src/main.cpp
+    src/gamestate.h
+    src/pieces.h
+    src/validator.cpp
+    src/validator.h
+    src/moveexecutor.cpp
+    src/moveexecutor.h
 )
 
 qt_add_qml_module(appqchess
     URI qchess
     VERSION 1.0
     QML_FILES
-        Main.qml
-        SOURCES square.h
-        SOURCES board.h board.cpp
-        SOURCES controller.h controller.cpp
-        SOURCES pieces.h
-        SOURCES validator.h validator.cpp
-        SOURCES gamestate.h
+        qml/Main.qml
+    SOURCES
+        src/controller.cpp
+        src/controller.h
+        src/board.cpp
+        src/board.h
+        src/square.cpp
+        src/square.h
     RESOURCES
-        Alpha.ttf
+        resources/Alpha.ttf
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

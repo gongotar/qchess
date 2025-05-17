@@ -13,7 +13,7 @@ Window {
     }
     FontLoader {
         id: chessFont
-        source: "Alpha.ttf"
+        source: "qrc:/qt/qml/qchess/resources/Alpha.ttf"
     }
     GridView {
         id: grid
@@ -30,7 +30,7 @@ Window {
                 visible: highlight
                 anchors.fill: parent
                 color: "gold"
-                opacity: 0.2
+                opacity: 0.22
             }
             Rectangle {
                 visible: isSelected

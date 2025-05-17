@@ -33,50 +33,66 @@ namespace {
     {
         Square* m_from;
         Square* m_to;
+        const Board* m_board;
         Square* m_king;
         const QChar m_to_piece;
     public:
-        Simulator(Square* from, Square* to, Square* king):
+        Simulator(Square* from, Square* to, Square* king, const Board* board):
             m_from(from),
             m_to(to),
             m_king (king),
+            m_board(board),
             m_to_piece(to->piece())
         {
             if (from == king)
                 m_king = to;
+            else if (from->piece() == Pieces::BlackPawn
+                     && (to->col() - from->col() != 0 && to->piece() == Pieces::Empty))
+                m_board->at(to->row() - 1, to->col())->setPieceQuitely(Pieces::Empty);
+            else if (from->piece() == Pieces::WhitePawn
+                     && (to->col() - from->col() != 0 && to->piece() == Pieces::Empty))
+                m_board->at(to->row() + 1, to->col())->setPieceQuitely(Pieces::Empty);
             to->setPieceQuitely(from->piece());
             if (from != to)
                 from->setPieceQuitely(Pieces::Empty);
         }
+
         const Square* king() const noexcept
         {
             return m_king;
         }
+
         ~Simulator() noexcept
         {
             m_from->setPieceQuitely(m_to->piece());
             m_to->setPieceQuitely(m_to_piece);
+            if (m_from->piece() == Pieces::BlackPawn
+                     && (m_to->col() - m_from->col() != 0 && m_to->piece() == Pieces::Empty))
+                m_board->at(m_to->row() - 1, m_to->col())->setPieceQuitely(Pieces::WhitePawn);
+            else if (m_from->piece() == Pieces::WhitePawn
+                     && (m_to->col() - m_from->col() != 0 && m_to->piece() == Pieces::Empty))
+                m_board->at(m_to->row() + 1, m_to->col())->setPieceQuitely(Pieces::BlackPawn);
         }
     };
 }
 
-// EnPassant!
 // pawn promotion
+// draw by repitition
+// draw by 50 moves
+// mate
+// stale mate
 // timer
 // format choice
 // color choice
 // flip board
 // taken pieces
-// highlight when tryying to move in check
-// draw by repitition
-// draw by 50 moves
-// mate
-// stale mate
+// highlight when trying to move in check
 // undo
+// sounds
 
 bool Validator::isInCheck (Square* from, Square* to, Square* king) const noexcept
 {
-    Simulator sim(from, to, king);
+    Simulator sim(from, to, king, m_board);
     const int kingRow = sim.king()->row();
     const int kingCol = sim.king()->col();
     const Pieces::Color kingColor = Pieces::pieceColor(sim.king()->piece());
