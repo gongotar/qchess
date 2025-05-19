@@ -38,6 +38,10 @@ class Controller: public QObject
 public:
     Controller(Board* board, QObject *parent = nullptr);
     Q_INVOKABLE void selectOrMovePiece(int row, int col);
+    Q_INVOKABLE void promotePawnTo(int row, int col, const QChar& piece);
+
+signals:
+    void promotePawn(int row, int col, const QList<QChar>& choices);
 private:
 
     const Board* m_board;

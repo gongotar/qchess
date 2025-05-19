@@ -30,9 +30,19 @@ class GameState;
 class MoveExecutor
 {
 public:
-    MoveExecutor(Board* board);
-    void operator() (Square* from, Square* to, GameState states[]) const noexcept;
 
+    struct MoveResult {
+        bool m_revokeQueenSideCastleRight = false;
+        bool m_revokeKingSideCastleRight = false;
+        Square* m_newKingSquare = nullptr;
+        Square* m_promotedPawnSquare = nullptr;
+        Square* m_enPassantTarget = nullptr;
+    };
+
+    MoveExecutor(Board* board);
+    MoveResult operator() (Square* from, Square* to) const noexcept;
+
+private:
     Board* m_board;
 };
 

@@ -24,6 +24,22 @@
 #include "square.h"
 #include "board.h"
 
+namespace {
+QList<QChar> promotionChoices (Pieces::Color color)
+{
+    if (color == Pieces::Black)
+        return {Pieces::BlackQueen,
+                Pieces::BlackRook,
+                Pieces::BlackKnight,
+                Pieces::BlackBishop};
+    else
+        return {Pieces::WhiteQueen,
+                Pieces::WhiteRook,
+                Pieces::WhiteKnight,
+                Pieces::WhiteBishop};
+}
+}
+
 Controller::Controller(Board *board, QObject *parent) :
     QObject(parent),
     m_board (board),
@@ -35,7 +51,7 @@ Controller::Controller(Board *board, QObject *parent) :
 }
 
 void Controller::selectOrMovePiece(int row, int col)
-{
+{    
     if (m_prevMove) {
         m_prevMove->first->setHighlight(false);
         m_prevMove->second->setHighlight(false);
@@ -62,14 +78,29 @@ void Controller::selectOrMovePiece(int row, int col)
         return;
     }
     else if (m_from) {
-        m_moveExec(m_from, selected, m_states);
-        m_turnColor = static_cast<Pieces::Color>(1 - static_cast<int>(m_turnColor));
+        MoveExecutor::MoveResult res = m_moveExec(m_from, selected);
+
+        // update state
+        state.m_kingSideCastleRight &= !res.m_revokeKingSideCastleRight;
+        state.m_queenSideCastleRight &= !res.m_revokeQueenSideCastleRight;
+        m_states[1-m_turnColor].m_enPassantTarget = res.m_enPassantTarget;
+        state.m_enPassantTarget = nullptr;
+        if (res.m_newKingSquare)
+            state.m_king = res.m_newKingSquare;
+        if (const Square* p = res.m_promotedPawnSquare; p)
+            emit promotePawn(p->row(), p->col(), promotionChoices(m_turnColor));
+        // update ui
         m_from->setHighlight(true);
         selected->setHighlight(true);
         m_prevMove.emplace(m_from, selected);
-    }
 
+        m_turnColor = static_cast<Pieces::Color>(1 - static_cast<int>(m_turnColor));
+    }
     m_from = nullptr;
     m_targets.clear();
 
+}
+
+void Controller::promotePawnTo(int row, int col, const QChar &piece) {
+    m_board->at(row, col)->setPiece(piece);
 }

@@ -98,7 +98,6 @@ namespace {
     };
 }
 
-// pawn promotion
 // draw by repitition
 // draw by 50 moves
 // mate

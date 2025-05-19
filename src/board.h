@@ -47,7 +47,6 @@ public:
 
 private:
     void init();
-
     Square* m_squares[8][8];
 };
 
