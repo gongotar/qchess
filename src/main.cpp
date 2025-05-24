@@ -20,9 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "board.h"
-#include "controller.h"
-
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -31,9 +28,6 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    Board board;
-    Controller controller(&board);
-
     QQmlApplicationEngine engine;
     QObject::connect(
         &engine,
@@ -41,8 +35,6 @@ int main(int argc, char *argv[])
         &app,
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
-    engine.rootContext()->setContextProperty("board", &board);
-    engine.rootContext()->setContextProperty("controller", &controller);
 
     engine.loadFromModule("qchess", "Main");
 

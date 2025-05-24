@@ -23,8 +23,8 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include <QObject>
 #include <QAbstractListModel>
+#include <QObject>
 
 class Square;
 

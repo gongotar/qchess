@@ -32,13 +32,9 @@ qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(appqchess
     src/main.cpp
-    src/gamestate.h
-    src/pieces.h
-    src/validator.cpp
-    src/validator.h
-    src/moveexecutor.cpp
-    src/moveexecutor.h
 )
+
+target_include_directories(appqchess PRIVATE src)
 
 qt_add_qml_module(appqchess
     URI qchess
@@ -50,8 +46,13 @@ qt_add_qml_module(appqchess
         src/controller.h
         src/board.cpp
         src/board.h
+        src/validator.cpp
+        src/validator.h
+        src/moveexecutor.cpp
+        src/moveexecutor.h
         src/square.cpp
         src/square.h
+        src/pieces.h
     RESOURCES
         resources/Alpha.ttf
 )

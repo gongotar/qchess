@@ -22,6 +22,7 @@
 
 import QtQuick
 import QtQuick.Controls
+import qchess
 
 Window {
     title: "Chess"
@@ -44,7 +45,7 @@ Window {
         anchors.margins: 10
         cellWidth: width / 8
         cellHeight: height / 8
-        model: board
+        model: Controller.board
         delegate: Rectangle {
             width: grid.width / 8
             height: grid.height / 8
@@ -79,7 +80,7 @@ Window {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    controller.selectOrMovePiece(row, col)
+                    Controller.selectOrMovePiece(row, col)
                 }
             }
         }
@@ -116,7 +117,7 @@ Window {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            controller.promotePawnTo(promotionPopup.row,
+                            Controller.promotePawnTo(promotionPopup.row,
                                                      promotionPopup.col,
                                                      modelData);
                             promotionPopup.close();
@@ -127,7 +128,7 @@ Window {
         }
     }
     Connections {
-        target: controller
+        target: Controller
         function onPromotePawn(row, col, pieces) {
             promotionPopup.row = row
             promotionPopup.col = col

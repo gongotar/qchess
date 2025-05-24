@@ -23,30 +23,33 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include <QObject>
-#include <QSet>
-#include "validator.h"
+#include "board.h"
+#include "gamestate.h"
 #include "moveexecutor.h"
 #include "pieces.h"
-#include "gamestate.h"
+#include "validator.h"
 
-class Board;
+#include <QObject>
+#include <qqmlintegration.h>
+#include <QSet>
 
 class Controller: public QObject
 {
     Q_OBJECT
+    QML_SINGLETON
+    QML_ELEMENT
+    Q_PROPERTY(Board* board READ board CONSTANT)
 public:
-    Controller(Board* board, QObject *parent = nullptr);
+    Controller(QObject *parent = nullptr);
     Q_INVOKABLE void selectOrMovePiece(int row, int col);
     Q_INVOKABLE void promotePawnTo(int row, int col, const QChar& piece);
-
+    Board* board() const noexcept {return const_cast<Board*>(&m_board);}
 signals:
     void promotePawn(int row, int col, const QList<QChar>& choices);
 private:
-
-    const Board* m_board;
-    Validator m_validator;
-    MoveExecutor m_moveExec;
+    const Board m_board;
+    const Validator m_validator;
+    const MoveExecutor m_moveExec;
     Square* m_from;
     std::optional<std::pair<Square*, Square*>> m_prevMove;
     QSet <Square*> m_targets;

@@ -39,11 +39,11 @@ public:
         Square* m_enPassantTarget = nullptr;
     };
 
-    MoveExecutor(Board* board);
+    MoveExecutor(const Board& board);
     MoveResult operator() (Square* from, Square* to) const noexcept;
 
 private:
-    Board* m_board;
+    const Board& m_board;
 };
 
 #endif // MOVEEXECUTOR_H

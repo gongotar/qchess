@@ -20,13 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "moveexecutor.h"
 #include "board.h"
 #include "gamestate.h"
-#include "square.h"
+#include "moveexecutor.h"
 #include "pieces.h"
+#include "square.h"
 
-MoveExecutor::MoveExecutor(Board* board): m_board(board) {}
+MoveExecutor::MoveExecutor(const Board& board): m_board(board) {}
 
 MoveExecutor::MoveResult MoveExecutor::operator()(Square *from, Square *to) const noexcept
 {
@@ -37,23 +37,23 @@ MoveExecutor::MoveResult MoveExecutor::operator()(Square *from, Square *to) cons
     const bool isPawn = piece == Pieces::WhitePawn || piece == Pieces::BlackPawn;
 
     if (isKing && to->col() - from->col() == 2) {
-        Square* rookFrom = m_board->at(from->row(), 7);
-        Square* rookTo = m_board->at(from->row(), 5);
+        Square* rookFrom = m_board.at(from->row(), 7);
+        Square* rookTo = m_board.at(from->row(), 5);
         rookTo->setPiece(rookFrom->piece());
         rookFrom->setPiece(Pieces::Empty);
     }
     else if (isKing && to->col() - from->col() == -2) {
-        Square* rookFrom = m_board->at(from->row(), 0);
-        Square* rookTo = m_board->at(from->row(), 3);
+        Square* rookFrom = m_board.at(from->row(), 0);
+        Square* rookTo = m_board.at(from->row(), 3);
         rookTo->setPiece(rookFrom->piece());
         rookFrom->setPiece(Pieces::Empty);
     }
     else if (isPawn) {
         const int d = piece == Pieces::BlackPawn? 1: -1;
         if (to->row() - from->row() == 2*d)
-            result.m_enPassantTarget = m_board->at(to->row() - 1*d, to->col());
+            result.m_enPassantTarget = m_board.at(to->row() - 1*d, to->col());
         else if (to->col() - from->col() != 0 && to->piece() == Pieces::Empty) // en passant
-            m_board->at(to->row() - 1*d, to->col())->setPiece(Pieces::Empty);
+            m_board.at(to->row() - 1*d, to->col())->setPiece(Pieces::Empty);
         else if (to->row() << 1 == (d+1)*7) // promotion
             result.m_promotedPawnSquare = to;
     }

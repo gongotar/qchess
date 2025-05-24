@@ -22,7 +22,6 @@
 
 #include "controller.h"
 #include "square.h"
-#include "board.h"
 
 namespace {
 QList<QChar> promotionChoices (Pieces::Color color)
@@ -40,14 +39,14 @@ QList<QChar> promotionChoices (Pieces::Color color)
 }
 }
 
-Controller::Controller(Board *board, QObject *parent) :
+Controller::Controller(QObject *parent) :
     QObject(parent),
-    m_board (board),
-    m_validator(board),
-    m_moveExec(board)
+    m_board(this),
+    m_validator(m_board),
+    m_moveExec(m_board)
 {
-    m_states[Pieces::White].m_king = m_board->at(7, 4);
-    m_states[Pieces::Black].m_king = m_board->at(0, 4);
+    m_states[Pieces::White].m_king = m_board.at(7, 4);
+    m_states[Pieces::Black].m_king = m_board.at(0, 4);
 }
 
 void Controller::selectOrMovePiece(int row, int col)
@@ -62,7 +61,7 @@ void Controller::selectOrMovePiece(int row, int col)
     if (m_from)
         m_from->setIsSelected(false);
 
-    Square* selected = m_board->at(row, col);
+    Square* selected = m_board.at(row, col);
     GameState& state = m_states[m_turnColor];
 
     if (!m_from || !m_targets.contains(selected)) {
@@ -102,5 +101,5 @@ void Controller::selectOrMovePiece(int row, int col)
 }
 
 void Controller::promotePawnTo(int row, int col, const QChar &piece) {
-    m_board->at(row, col)->setPiece(piece);
+    m_board.at(row, col)->setPiece(piece);
 }

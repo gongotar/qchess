@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "validator.h"
-#include "square.h"
 #include "board.h"
-#include "pieces.h"
 #include "gamestate.h"
+#include "pieces.h"
+#include "square.h"
+#include "validator.h"
 
 namespace {
     bool canThreaten(const QChar& piece, const std::pair<int, int>& dir, int distance) noexcept
@@ -55,11 +55,11 @@ namespace {
     {
         Square* m_from;
         Square* m_to;
-        const Board* m_board;
+        const Board& m_board;
         Square* m_king;
         const QChar m_to_piece;
     public:
-        Simulator(Square* from, Square* to, Square* king, const Board* board):
+        Simulator(Square* from, Square* to, Square* king, const Board& board):
             m_from(from),
             m_to(to),
             m_king (king),
@@ -70,10 +70,10 @@ namespace {
                 m_king = to;
             else if (from->piece() == Pieces::BlackPawn
                      && (to->col() - from->col() != 0 && to->piece() == Pieces::Empty))
-                m_board->at(to->row() - 1, to->col())->setPieceQuitely(Pieces::Empty);
+                m_board.at(to->row() - 1, to->col())->setPieceQuitely(Pieces::Empty);
             else if (from->piece() == Pieces::WhitePawn
                      && (to->col() - from->col() != 0 && to->piece() == Pieces::Empty))
-                m_board->at(to->row() + 1, to->col())->setPieceQuitely(Pieces::Empty);
+                m_board.at(to->row() + 1, to->col())->setPieceQuitely(Pieces::Empty);
             to->setPieceQuitely(from->piece());
             if (from != to)
                 from->setPieceQuitely(Pieces::Empty);
@@ -90,10 +90,10 @@ namespace {
             m_to->setPieceQuitely(m_to_piece);
             if (m_from->piece() == Pieces::BlackPawn
                      && (m_to->col() - m_from->col() != 0 && m_to->piece() == Pieces::Empty))
-                m_board->at(m_to->row() - 1, m_to->col())->setPieceQuitely(Pieces::WhitePawn);
+                m_board.at(m_to->row() - 1, m_to->col())->setPieceQuitely(Pieces::WhitePawn);
             else if (m_from->piece() == Pieces::WhitePawn
                      && (m_to->col() - m_from->col() != 0 && m_to->piece() == Pieces::Empty))
-                m_board->at(m_to->row() + 1, m_to->col())->setPieceQuitely(Pieces::BlackPawn);
+                m_board.at(m_to->row() + 1, m_to->col())->setPieceQuitely(Pieces::BlackPawn);
         }
     };
 }
@@ -134,7 +134,7 @@ bool Validator::isInCheck (Square* from, Square* to, Square* king) const noexcep
         int c = kingCol + dir.second;
         int distance = 1;
         while (r >= 0 && r < 8 && c >= 0 && c < 8) {
-            const QChar piece = m_board->at(r, c)->piece();
+            const QChar piece = m_board.at(r, c)->piece();
             if (piece != Pieces::Empty) {
                 if (Pieces::pieceColor(piece) != kingColor)
                     if (canThreaten(piece, dir, distance))
@@ -160,7 +160,7 @@ bool Validator::isInCheck (Square* from, Square* to, Square* king) const noexcep
         const int r = kingRow + move.first;
         const int c = kingCol + move.second;
         if (r >= 0 && r < 8 && c >= 0 && c < 8
-            && m_board->at(r, c)->piece() == opponentKnight)
+            && m_board.at(r, c)->piece() == opponentKnight)
             return true;
     }
 
@@ -169,12 +169,12 @@ bool Validator::isInCheck (Square* from, Square* to, Square* king) const noexcep
 
 bool Validator::isCastlePathInCheck(Square *king, int direction) const noexcept
 {
-    const Square* rook = m_board->at(king->row(), direction > 0? 7: 0);
+    const Square* rook = m_board.at(king->row(), direction > 0? 7: 0);
     const int col1 = rook->col();
     const int col2 = king->col();
     const int step = col2 > col1? 1:-1;
     for (int i = col1 + step; i != col2 + step; i+=step) {
-        Square* movedKing = m_board->at(king->row(), i);
+        Square* movedKing = m_board.at(king->row(), i);
         if (isInCheck(king, movedKing, king))
             return true;
     }
@@ -193,7 +193,7 @@ bool Validator::isPathClear(const Square *from, const Square *to) const noexcept
     int c = from->col() + stepC;
 
     while (r != to->row() || c != to->col()) {
-        const Square* intermediate = m_board->at(r, c);
+        const Square* intermediate = m_board.at(r, c);
         if (intermediate->piece() != Pieces::Empty)
             return false;
         r += stepR;
@@ -220,7 +220,7 @@ QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state)
     auto canMoveTo = [this, &isInsideBoard, color](int r, int c) {
         if (!isInsideBoard(r, c))
             return false;
-        Square* to = m_board->at(r, c);
+        Square* to = m_board.at(r, c);
         return to->piece() == Pieces::Empty || Pieces::pieceColor(to->piece()) != color;
     };
 
@@ -232,13 +232,13 @@ QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state)
         const int startRow = isWhite ? 6 : 1;
 
         // One forward
-        if (isInsideBoard(row + direction, col) && m_board->at(row + direction, col)->piece() == Pieces::Empty)
-            moves.append(m_board->at(row + direction, col));
+        if (isInsideBoard(row + direction, col) && m_board.at(row + direction, col)->piece() == Pieces::Empty)
+            moves.append(m_board.at(row + direction, col));
 
         if (row == startRow &&
-            m_board->at(row + direction, col)->piece() == Pieces::Empty &&
-            m_board->at(row + 2 * direction, col)->piece() == Pieces::Empty) // Two forward
-            moves.append(m_board->at(row + 2 * direction, col));
+            m_board.at(row + direction, col)->piece() == Pieces::Empty &&
+            m_board.at(row + 2 * direction, col)->piece() == Pieces::Empty) // Two forward
+            moves.append(m_board.at(row + 2 * direction, col));
         else if (state.m_enPassantTarget
                  && std::abs(col - state.m_enPassantTarget->col()) == 1
                  && row == (7 + direction) / 2) // en passant
@@ -249,7 +249,7 @@ QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state)
             const int newCol = col + dc;
             const int newRow = row + direction;
             if (isInsideBoard(newRow, newCol)) {
-                Square* target = m_board->at(newRow, newCol);
+                Square* target = m_board.at(newRow, newCol);
                 if (target->piece() != Pieces::Empty && Pieces::pieceColor(target->piece()) != color)
                     moves.append(target);
             }
@@ -267,7 +267,7 @@ QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state)
         for (auto [dr, dc] : knightMoves) {
             int r = row + dr, c = col + dc;
             if (canMoveTo(r, c))
-                moves.append(m_board->at(r, c));
+                moves.append(m_board.at(r, c));
         }
         break;
     }
@@ -293,7 +293,7 @@ QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state)
                 const int c = col + dc * step;
                 if (!isInsideBoard(r, c))
                     break;
-                Square* target = m_board->at(r, c);
+                Square* target = m_board.at(r, c);
                 if (target->piece() == Pieces::Empty)
                     moves.append(target);
                 else {
@@ -314,14 +314,14 @@ QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state)
                     continue;
                 int r = row + dr, c = col + dc;
                 if (canMoveTo(r, c))
-                    moves.append(m_board->at(r, c));
+                    moves.append(m_board.at(r, c));
             }
         }
 
-        if (state.m_kingSideCastleRight && isPathClear(from, m_board->at(row, 7)))
-            moves.append(m_board->at(row, 6));
-        if (state.m_queenSideCastleRight && isPathClear(from, m_board->at(row, 0)))
-            moves.append(m_board->at(row, 2));
+        if (state.m_kingSideCastleRight && isPathClear(from, m_board.at(row, 7)))
+            moves.append(m_board.at(row, 6));
+        if (state.m_queenSideCastleRight && isPathClear(from, m_board.at(row, 0)))
+            moves.append(m_board.at(row, 2));
 
         break;
     }
