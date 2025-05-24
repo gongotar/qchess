@@ -26,7 +26,17 @@
 #include "square.h"
 #include "validator.h"
 
+#define APPEND_IF_NOT_IN_CHECK(target)                        \
+do {                                                      \
+        if (!isInCheck(from, target, state.m_king)) {         \
+            moves.insert(target);                             \
+            if constexpr (stopAtFirst)                        \
+                return moves;                                 \
+    }                                                     \
+} while (0)
+
 namespace {
+
     bool canThreaten(const QChar& piece, const std::pair<int, int>& dir, int distance) noexcept
     {
         switch (piece.unicode()) {
@@ -111,13 +121,11 @@ namespace {
 // undo
 // sounds
 
-bool Validator::isInCheck (Square* from, Square* to, Square* king) const noexcept
+bool Validator::isInCheck(const Square *king) const noexcept
 {
-    Simulator sim(from, to, king, m_board);
-    const int kingRow = sim.king()->row();
-    const int kingCol = sim.king()->col();
-    const Pieces::Color kingColor = Pieces::pieceColor(sim.king()->piece());
-
+    const int kingRow = king->row();
+    const int kingCol = king->col();
+    const Pieces::Color kingColor = Pieces::pieceColor(king->piece());
     static const std::vector<std::pair<int, int>> directions = {
         { -1,  0 }, // up
         {  1,  0 }, // down
@@ -167,13 +175,19 @@ bool Validator::isInCheck (Square* from, Square* to, Square* king) const noexcep
     return false;
 }
 
+bool Validator::isInCheck (Square* from, Square* to, Square* king) const noexcept
+{
+    Simulator sim(from, to, king, m_board);
+    return isInCheck(sim.king());
+}
+
 bool Validator::isCastlePathInCheck(Square *king, int direction) const noexcept
 {
     const Square* rook = m_board.at(king->row(), direction > 0? 7: 0);
     const int col1 = rook->col();
     const int col2 = king->col();
     const int step = col2 > col1? 1:-1;
-    for (int i = col1 + step; i != col2 + step; i+=step) {
+    for (int i = col1 + step; i != col2; i+=step) {
         Square* movedKing = m_board.at(king->row(), i);
         if (isInCheck(king, movedKing, king))
             return true;
@@ -203,9 +217,22 @@ bool Validator::isPathClear(const Square *from, const Square *to) const noexcept
     return true;
 }
 
-QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state) const
+bool Validator::hasLegalTargets(const GameState &state) const
 {
-    QList<Square*> moves;
+    const Pieces::Color color = Pieces::pieceColor(state.m_king->piece());
+    for (int row = 0; row < 8; ++row)
+        for (int col = 0; col < 8; ++col)
+            if (Square* sq = m_board.at(row, col);
+                Pieces::pieceColor(sq->piece()) == color)
+                if (!getLegalTargets<true>(sq, state).empty())
+                    return true;
+    return false;
+}
+
+template <bool stopAtFirst>
+QSet<Square *> Validator::getLegalTargets(Square *from, const GameState& state) const
+{
+    QSet<Square*> moves;
 
     const int row = from->row();
     const int col = from->col();
@@ -232,17 +259,21 @@ QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state)
         const int startRow = isWhite ? 6 : 1;
 
         // One forward
-        if (isInsideBoard(row + direction, col) && m_board.at(row + direction, col)->piece() == Pieces::Empty)
-            moves.append(m_board.at(row + direction, col));
+        if (Square *target = m_board.at(row + direction, col);
+            isInsideBoard(row + direction, col) && target->piece() == Pieces::Empty) {
+            APPEND_IF_NOT_IN_CHECK(target);
+        }
 
         if (row == startRow &&
             m_board.at(row + direction, col)->piece() == Pieces::Empty &&
-            m_board.at(row + 2 * direction, col)->piece() == Pieces::Empty) // Two forward
-            moves.append(m_board.at(row + 2 * direction, col));
+            m_board.at(row + 2 * direction, col)->piece() == Pieces::Empty) { // Two forward
+            APPEND_IF_NOT_IN_CHECK(m_board.at(row + 2 * direction, col));
+        }
         else if (state.m_enPassantTarget
                  && std::abs(col - state.m_enPassantTarget->col()) == 1
-                 && row == (7 + direction) / 2) // en passant
-            moves.append(state.m_enPassantTarget);
+                 && row == (7 + direction) / 2) { // en passant
+            APPEND_IF_NOT_IN_CHECK(state.m_enPassantTarget);
+        }
 
         // Capture diagonally
         for (const int dc : {-1, 1}) {
@@ -250,8 +281,9 @@ QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state)
             const int newRow = row + direction;
             if (isInsideBoard(newRow, newCol)) {
                 Square* target = m_board.at(newRow, newCol);
-                if (target->piece() != Pieces::Empty && Pieces::pieceColor(target->piece()) != color)
-                    moves.append(target);
+                if (target->piece() != Pieces::Empty && Pieces::pieceColor(target->piece()) != color) {
+                    APPEND_IF_NOT_IN_CHECK(target);
+                }
             }
         }
 
@@ -266,8 +298,9 @@ QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state)
         };
         for (auto [dr, dc] : knightMoves) {
             int r = row + dr, c = col + dc;
-            if (canMoveTo(r, c))
-                moves.append(m_board.at(r, c));
+            if (canMoveTo(r, c)) {
+                APPEND_IF_NOT_IN_CHECK(m_board.at(r, c));
+            }
         }
         break;
     }
@@ -294,11 +327,13 @@ QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state)
                 if (!isInsideBoard(r, c))
                     break;
                 Square* target = m_board.at(r, c);
-                if (target->piece() == Pieces::Empty)
-                    moves.append(target);
+                if (target->piece() == Pieces::Empty) {
+                    APPEND_IF_NOT_IN_CHECK(target);
+                }
                 else {
-                    if (Pieces::pieceColor(target->piece()) != color)
-                        moves.append(target);
+                    if (Pieces::pieceColor(target->piece()) != color) {
+                        APPEND_IF_NOT_IN_CHECK(target);
+                    }
                     break;
                 }
             }
@@ -313,16 +348,22 @@ QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state)
                 if (dr == 0 && dc == 0)
                     continue;
                 int r = row + dr, c = col + dc;
-                if (canMoveTo(r, c))
-                    moves.append(m_board.at(r, c));
+                if (canMoveTo(r, c)) {
+                    APPEND_IF_NOT_IN_CHECK(m_board.at(r, c));
+                }
             }
         }
 
-        if (state.m_kingSideCastleRight && isPathClear(from, m_board.at(row, 7)))
-            moves.append(m_board.at(row, 6));
-        if (state.m_queenSideCastleRight && isPathClear(from, m_board.at(row, 0)))
-            moves.append(m_board.at(row, 2));
-
+        if (state.m_kingSideCastleRight && isPathClear(from, m_board.at(row, 7))) {
+            if (!isCastlePathInCheck(state.m_king, 1)) {
+                APPEND_IF_NOT_IN_CHECK(m_board.at(row, 6));
+            }
+        }
+        if (state.m_queenSideCastleRight && isPathClear(from, m_board.at(row, 0))) {
+            if (!isCastlePathInCheck(state.m_king, -1)) {
+                APPEND_IF_NOT_IN_CHECK(m_board.at(row, 2));
+            }
+        }
         break;
     }
     }
@@ -330,16 +371,17 @@ QList<Square *> Validator::getLegalTargets(Square *from, const GameState& state)
     return moves;
 }
 
-QSet<Square*> Validator::getNotInCheck(Square *from, const QList<Square *>& targets, Square *king) const
+Validator::GameOutcome Validator::evaluateGameOutcome(const GameState &state) const
 {
-    QSet<Square *> moves;
-    moves.reserve(targets.size());
-    for (Square* to: targets) {
-        if (int diff = to->col() - from->col();
-            (from == king && std::abs(diff) == 2 && !isCastlePathInCheck(from, diff)) // castling
-            ||
-            (((from != king || std::abs(diff) <= 1) && !isInCheck(from, to, king))))
-            moves.insert(to);
+    if (const bool moves = hasLegalTargets(state); !moves) {
+        if (isInCheck(state.m_king))
+            return GameOutcome::CheckMate;
+        return GameOutcome::StaleMate;
     }
-    return moves;
+    return GameOutcome::Ongoing;
 }
+
+template QSet<Square*>
+Validator::getLegalTargets<true>(Square* from, const GameState& state) const;
+template QSet<Square*>
+Validator::getLegalTargets<false>(Square* from, const GameState& state) const;

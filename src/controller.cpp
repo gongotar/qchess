@@ -67,8 +67,7 @@ void Controller::selectOrMovePiece(int row, int col)
     if (!m_from || !m_targets.contains(selected)) {
         if (Pieces::pieceColor(selected->piece()) != m_turnColor)
             return;
-        QList <Square*> targets = m_validator.getLegalTargets(selected, state);
-        m_targets = m_validator.getNotInCheck(selected, targets, state.m_king);
+        m_targets = m_validator.getLegalTargets(selected, state);
         m_from = selected;
 
         for (Square* sq : std::as_const(m_targets))
@@ -93,6 +92,10 @@ void Controller::selectOrMovePiece(int row, int col)
         selected->setHighlight(true);
         m_prevMove.emplace(m_from, selected);
 
+        if (auto outcome = m_validator.evaluateGameOutcome(m_states[1-m_turnColor]);
+            outcome != Validator::GameOutcome::Ongoing) {
+
+        }
         m_turnColor = static_cast<Pieces::Color>(1 - static_cast<int>(m_turnColor));
     }
     m_from = nullptr;

@@ -23,7 +23,6 @@
 #ifndef VALIDATOR_H
 #define VALIDATOR_H
 
-#include <QList>
 #include <QSet>
 
 class Board;
@@ -33,14 +32,25 @@ class GameState;
 class Validator
 {
 public:
+    enum GameOutcome {
+        Ongoing = 0,
+        CheckMate,
+        StaleMate,
+        DrawByRepetition,
+        DrawBy50MoveRule
+    };
+
     Validator(const Board& board): m_board (board) {}
-    QList<Square*> getLegalTargets(Square* from, const GameState& state) const;
-    QSet<Square*> getNotInCheck(Square* from, const QList<Square*>& targets, Square *king) const;
+    template <bool stopAtFirst = false>
+    QSet<Square*> getLegalTargets(Square* from, const GameState& state) const;
+    GameOutcome evaluateGameOutcome(const GameState& state) const;
+
 private:
+    bool isInCheck(const Square* king) const noexcept;
     bool isInCheck(Square* from, Square* to, Square* king) const noexcept;
     bool isCastlePathInCheck(Square* king, int direction) const noexcept;
     bool isPathClear(const Square* from, const Square* to) const noexcept;
-
+    bool hasLegalTargets(const GameState& state) const;
     const Board& m_board;
 };
 
