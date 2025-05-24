@@ -34,11 +34,11 @@ class Validator
 {
 public:
     Validator(const Board& board): m_board (board) {}
-    bool isInCheck(Square* from, Square* to, Square* king) const noexcept;
-    bool isCastlePathInCheck(Square* king, int direction) const noexcept;
     QList<Square*> getLegalTargets(Square* from, const GameState& state) const;
     QSet<Square*> getNotInCheck(Square* from, const QList<Square*>& targets, Square *king) const;
 private:
+    bool isInCheck(Square* from, Square* to, Square* king) const noexcept;
+    bool isCastlePathInCheck(Square* king, int direction) const noexcept;
     bool isPathClear(const Square* from, const Square* to) const noexcept;
 
     const Board& m_board;

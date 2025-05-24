@@ -97,7 +97,6 @@ void Controller::selectOrMovePiece(int row, int col)
     }
     m_from = nullptr;
     m_targets.clear();
-
 }
 
 void Controller::promotePawnTo(int row, int col, const QChar &piece) {
