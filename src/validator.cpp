@@ -110,13 +110,12 @@ namespace {
 
 // draw by repitition
 // draw by 50 moves
-// mate
-// stale mate
 // timer
 // format choice
 // color choice
 // flip board
 // taken pieces
+// count non taken piees, optimze mate calculation
 // highlight when trying to move in check
 // undo
 // sounds

@@ -39,15 +39,22 @@ class Controller: public QObject
     QML_SINGLETON
     QML_ELEMENT
     Q_PROPERTY(Board* board READ board CONSTANT)
+
 public:
     Controller(QObject *parent = nullptr);
     Q_INVOKABLE void selectOrMovePiece(int row, int col);
     Q_INVOKABLE void promotePawnTo(int row, int col, const QChar& piece);
+    Q_INVOKABLE void restartGame();
     Board* board() const noexcept {return const_cast<Board*>(&m_board);}
+
 signals:
     void promotePawn(int row, int col, const QList<QChar>& choices);
+    void gameOver(const QString message);
+
 private:
-    const Board m_board;
+    void handleGameOutCome(Validator::GameOutcome outCome);
+
+    Board m_board;
     const Validator m_validator;
     const MoveExecutor m_moveExec;
     Square* m_from;

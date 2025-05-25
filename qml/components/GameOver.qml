@@ -20,25 +20,44 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
-#include <QtQuickControls2/QQuickStyle>
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import QtQuick.Controls.Material
 
-int main(int argc, char *argv[])
-{
-    QGuiApplication app(argc, argv);
+Dialog {
+    id: gameOver
+    modal: true
+    focus: true
+    title: "Game Over"
+    anchors.centerIn: parent
 
-    QQuickStyle::setStyle("Material");
-    QQmlApplicationEngine engine;
-    QObject::connect(
-        &engine,
-        &QQmlApplicationEngine::objectCreationFailed,
-        &app,
-        []() { QCoreApplication::exit(-1); },
-        Qt::QueuedConnection);
+    property string message
 
-    engine.loadFromModule("qchess", "Main");
+    standardButtons: Dialog.Yes | Dialog.No
+    onAccepted: {
+        Controller.restartGame()
+    }
 
-    return app.exec();
+    contentItem: ColumnLayout {
+        width: parent.width * 0.8
+        spacing: 10
+        Text {
+            id: messageText
+            text: gameOver.message
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignHCenter
+            font.pixelSize: 16
+            color: Material.foreground
+        }
+    }
+
+    Connections {
+        target: Controller
+        function onGameOver(message) {
+            gameOver.message = message
+            gameOver.open()
+        }
+    }
 }

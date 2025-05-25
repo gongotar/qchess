@@ -26,10 +26,10 @@
 
 Board::Board(QObject *parent): QAbstractListModel(parent)
 {
-    init();
+    resetBoard();
 }
 
-void Board::init()
+void Board::resetBoard()
 {
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
@@ -56,26 +56,37 @@ void Board::init()
                 case 4: piece = Pieces::WhiteKing; break;
                 }
             }
-            auto square = new Square(row, col, piece, this);
-            connect(square, &Square::pieceChanged, this, [this, row, col]() {
-                QModelIndex idx = createIndex(row * 8 + col, 0);
-                emit dataChanged(idx, idx, {PieceRole});
-            });
-            connect(square, &Square::legalDestinationChanged, this, [this, row, col]() {
-                QModelIndex idx = createIndex(row * 8 + col, 0);
-                emit dataChanged(idx, idx, {IsLegalDestinationRole});
-            });
-            connect(square, &Square::highlightChanged, this, [this, row, col]() {
-                QModelIndex idx = createIndex(row * 8 + col, 0);
-                emit dataChanged(idx, idx, {HighlightRole});
-            });
-            connect(square, &Square::isSelectedChanged, this, [this, row, col]() {
-                QModelIndex idx = createIndex(row * 8 + col, 0);
-                emit dataChanged(idx, idx, {IsSelectedRole});
-            });
-            m_squares[row][col] = square;
+            if (m_squares[row][col] == nullptr) {
+                auto square = new Square(row, col, piece, this);
+                connectSquareSignals(square);
+                m_squares[row][col] = square;
+            }
+            else {
+                Square* square = m_squares[row][col];
+                square->setPiece(piece);
+                square->setHighlight(false);
+                square->setIsSelected(false);
+                square->setLegalDestination(false);
+            }
         }
     }
+}
+
+void Board::connectSquareSignals(Square* square)
+{
+    const int row = square->row();
+    const int col = square->col();
+    auto makeConnection = [this, row, col, square](auto signal, int role) {
+        connect(square, signal, this, [this, row, col, role]() {
+            QModelIndex idx = createIndex(row * 8 + col, 0);
+            emit dataChanged(idx, idx, {role});
+        });
+    };
+
+    makeConnection(&Square::pieceChanged, PieceRole);
+    makeConnection(&Square::legalDestinationChanged, IsLegalDestinationRole);
+    makeConnection(&Square::highlightChanged, HighlightRole);
+    makeConnection(&Square::isSelectedChanged, IsSelectedRole);
 }
 
 QVariant Board::data(const QModelIndex &index, int role) const noexcept

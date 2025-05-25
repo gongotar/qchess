@@ -21,8 +21,8 @@
 // SOFTWARE.
 
 import QtQuick
-import QtQuick.Controls
 import qchess
+import "components"
 
 Window {
     title: "Chess"
@@ -85,55 +85,10 @@ Window {
             }
         }
     }
-
-    Popup {
-        id: promotionPopup
-        modal: true
-        focus: true
-        anchors.centerIn: parent
-        height: parent.height / 7
-        width: parent.width / 2
-        closePolicy: Popup.NoAutoClose
-
-        property int row
-        property int col;
-        property var promotionPieces;
-
-        background: Rectangle {
-            color: "darkgoldenrod"
-            radius: 8
-        }
-
-        contentItem: Row {
-            anchors.centerIn: parent
-
-            // You can show icons or letters for pieces
-            Repeater {
-                model: promotionPopup.promotionPieces
-                delegate: Text {
-                    text: modelData
-                    font.pixelSize: parent.width / 4
-                    font.family: chessFont.name
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            Controller.promotePawnTo(promotionPopup.row,
-                                                     promotionPopup.col,
-                                                     modelData);
-                            promotionPopup.close();
-                        }
-                    }
-                }
-            }
-        }
+    Promotion {
+        id: promotion
     }
-    Connections {
-        target: Controller
-        function onPromotePawn(row, col, pieces) {
-            promotionPopup.row = row
-            promotionPopup.col = col
-            promotionPopup.promotionPieces = pieces
-            promotionPopup.open()
-        }
+    GameOver {
+        id: gameOver
     }
 }

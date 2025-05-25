@@ -36,6 +36,7 @@ public:
 
     Board(QObject *parent = nullptr);
 
+    void resetBoard();
     int rowCount(const QModelIndex &parent = QModelIndex()) const noexcept override {return 64;}
     QVariant data(const QModelIndex &index, int role) const noexcept override;
     QHash<int, QByteArray> roleNames() const noexcept override;
@@ -46,8 +47,8 @@ public:
     }
 
 private:
-    void init();
-    Square* m_squares[8][8];
+    void connectSquareSignals(Square* square);
+    Square* m_squares[8][8] = {};
 };
 
 #endif // BOARD_H
