@@ -57,6 +57,7 @@ qt_add_qml_module(appqchess
         resources/Alpha.ttf
         QML_FILES qml/components/Promotion.qml
         QML_FILES qml/components/GameOver.qml
+        QML_FILES qml/components/Board.qml
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

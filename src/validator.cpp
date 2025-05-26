@@ -26,12 +26,12 @@
 #include "square.h"
 #include "validator.h"
 
-#define APPEND_IF_NOT_IN_CHECK(target)                        \
+#define APPEND_IF_NOT_IN_CHECK(target)                    \
 do {                                                      \
-        if (!isInCheck(from, target, state.m_king)) {         \
-            moves.insert(target);                             \
-            if constexpr (stopAtFirst)                        \
-                return moves;                                 \
+    if (!isInCheck(from, target, state.m_king)) {         \
+        moves.insert(target);                             \
+        if constexpr (stopAtFirst)                        \
+            return moves;                                 \
     }                                                     \
 } while (0)
 
@@ -263,6 +263,7 @@ QSet<Square *> Validator::getLegalTargets(Square *from, const GameState& state) 
             APPEND_IF_NOT_IN_CHECK(target);
         }
 
+        // Two forward
         if (row == startRow &&
             m_board.at(row + direction, col)->piece() == Pieces::Empty &&
             m_board.at(row + 2 * direction, col)->piece() == Pieces::Empty) { // Two forward

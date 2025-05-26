@@ -67,19 +67,19 @@ namespace Pieces
     inline Color pieceColor(const QChar &piece) noexcept
     {
         switch(ushort code = piece.unicode()) {
-            case WhiteKingCode:
+            case WhitePawnCode:
+            case WhiteKnightCode:
+            case WhiteBishopCode:
             case WhiteQueenCode:
             case WhiteRookCode:
-            case WhiteBishopCode:
-            case WhiteKnightCode:
-            case WhitePawnCode:
+            case WhiteKingCode:
                 return White;
-            case BlackKingCode:
+            case BlackPawnCode:
+            case BlackKnightCode:
+            case BlackBishopCode:
             case BlackQueenCode:
             case BlackRookCode:
-            case BlackBishopCode:
-            case BlackKnightCode:
-            case BlackPawnCode:
+            case BlackKingCode:
                 return Black;
             default:
                 return None;
