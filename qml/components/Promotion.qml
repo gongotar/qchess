@@ -44,7 +44,6 @@ Popup {
     contentItem: Row {
         anchors.centerIn: parent
 
-        // You can show icons or letters for pieces
         Repeater {
             model: promotion.promotionPieces
             delegate: Text {

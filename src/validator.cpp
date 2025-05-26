@@ -353,15 +353,18 @@ QSet<Square *> Validator::getLegalTargets(Square *from, const GameState& state) 
             }
         }
 
-        if (state.m_kingSideCastleRight && isPathClear(from, m_board.at(row, 7))) {
-            if (!isCastlePathInCheck(state.m_king, 1)) {
-                APPEND_IF_NOT_IN_CHECK(m_board.at(row, 6));
-            }
+        const bool testCheck = (state.m_kingSideCastleRight ||
+                                state.m_queenSideCastleRight)
+                               && isInCheck(from);
+        if (state.m_kingSideCastleRight && !testCheck &&
+            isPathClear(from, m_board.at(row, 7)) &&
+            !isCastlePathInCheck(state.m_king, 1)) {
+            APPEND_IF_NOT_IN_CHECK(m_board.at(row, 6));
         }
-        if (state.m_queenSideCastleRight && isPathClear(from, m_board.at(row, 0))) {
-            if (!isCastlePathInCheck(state.m_king, -1)) {
-                APPEND_IF_NOT_IN_CHECK(m_board.at(row, 2));
-            }
+        if (state.m_queenSideCastleRight && !testCheck &&
+            isPathClear(from, m_board.at(row, 0)) &&
+            !isCastlePathInCheck(state.m_king, -1)) {
+            APPEND_IF_NOT_IN_CHECK(m_board.at(row, 2));
         }
         break;
     }
