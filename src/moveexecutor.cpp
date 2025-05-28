@@ -36,7 +36,7 @@ void MoveExecutor::operator()(Square *from, Square *to, GameState* states) const
 
     const bool isKing = piece == Pieces::WhiteKing || piece == Pieces::BlackKing;
     const bool isRook = piece == Pieces::WhiteRook || piece == Pieces::BlackRook;
-    state.m_pawnMove = piece == Pieces::WhitePawn || piece == Pieces::BlackPawn;
+    const bool isPawn = piece == Pieces::WhitePawn || piece == Pieces::BlackPawn;
     bool enPassant = false;
     bool promotion = false;
 
@@ -52,7 +52,7 @@ void MoveExecutor::operator()(Square *from, Square *to, GameState* states) const
         rookTo->setPiece(rookFrom->piece());
         rookFrom->setPiece(Pieces::Empty);
     }
-    else if (state.m_pawnMove) {
+    else if (isPawn) {
         const int d = piece == Pieces::BlackPawn? 1: -1;
         if (to->row() - from->row() == 2*d)
             states[1 - color].m_enPassantTarget = m_board.at(to->row() - 1*d, to->col());
@@ -77,6 +77,13 @@ void MoveExecutor::operator()(Square *from, Square *to, GameState* states) const
         state.m_king = to;
     if (!promotion)
         state.m_promotedPawnSquare = nullptr;
+
+    if (!isPawn && !state.m_captured)
+        state.m_noPawnMoveOrCapture ++;
+    else
+        state.m_noPawnMoveOrCapture = 0;
+
+    state.m_lastMoves.emplaceBack(from, to);
 
     to->setPiece(piece);
     from->setPiece(Pieces::Empty);

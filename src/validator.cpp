@@ -109,7 +109,6 @@ namespace {
 }
 
 // draw by repitition
-// draw by 50 moves
 // timer
 // format choice
 // color choice
@@ -225,6 +224,11 @@ bool Validator::hasLegalTargets(const GameState &state) const
                 Pieces::pieceColor(sq->piece()) == color)
                 if (!getLegalTargets<true>(sq, state).empty())
                     return true;
+    return false;
+}
+
+bool Validator::isRepitition(const GameState& myState, const GameState& opponentState) const
+{
     return false;
 }
 
@@ -374,13 +378,17 @@ QSet<Square *> Validator::getLegalTargets(Square *from, const GameState& state) 
     return moves;
 }
 
-Validator::GameOutcome Validator::evaluateGameOutcome(const GameState &state) const
+Validator::GameOutcome Validator::evaluateGameOutcome(const GameState &myState,
+                                                      const GameState& opponentState) const
 {
-    if (const bool moves = hasLegalTargets(state); !moves) {
-        if (isInCheck(state.m_king))
+    if (const bool moves = hasLegalTargets(opponentState); !moves) {
+        if (isInCheck(opponentState.m_king))
             return GameOutcome::CheckMate;
         return GameOutcome::StaleMate;
     }
+    else if (myState.m_noPawnMoveOrCapture == 50)
+        return GameOutcome::DrawBy50MoveRule;
+    else if (isRepitition(myState, opponentState))
     return GameOutcome::Ongoing;
 }
 

@@ -31,12 +31,13 @@ struct GameState
     Square* m_king;
     bool m_kingSideCastleRight = true;
     bool m_queenSideCastleRight = true;
-    QList<Square*> m_lastSquares;
     // last move
-    bool m_pawnMove = false;
     Square* m_enPassantTarget = nullptr;
     Square* m_promotedPawnSquare = nullptr;
     std::optional<QChar> m_captured;
+    // last moves
+    int m_noPawnMoveOrCapture = 0;
+    QList<std::pair<Square*, Square*>> m_lastMoves;
 };
 
 #endif // GAMESTATE_H

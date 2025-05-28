@@ -43,7 +43,8 @@ public:
     Validator(const Board& board): m_board (board) {}
     template <bool stopAtFirst = false>
     QSet<Square*> getLegalTargets(Square* from, const GameState& state) const;
-    GameOutcome evaluateGameOutcome(const GameState& state) const;
+    GameOutcome evaluateGameOutcome(const GameState& myState,
+                                    const GameState& opponentState) const;
 
 private:
     bool isInCheck(const Square* king) const noexcept;
@@ -51,6 +52,8 @@ private:
     bool isCastlePathInCheck(Square* king, int direction) const noexcept;
     bool isPathClear(const Square* from, const Square* to) const noexcept;
     bool hasLegalTargets(const GameState& state) const;
+    bool isRepitition(const GameState& myState, const GameState& opponentState) const;
+
     const Board& m_board;
 };
 
