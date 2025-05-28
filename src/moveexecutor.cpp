@@ -20,21 +20,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include "moveexecutor.h"
 #include "board.h"
 #include "gamestate.h"
-#include "moveexecutor.h"
 #include "pieces.h"
 #include "square.h"
 
 MoveExecutor::MoveExecutor(const Board& board): m_board(board) {}
 
-MoveExecutor::MoveResult MoveExecutor::operator()(Square *from, Square *to) const noexcept
+void MoveExecutor::operator()(Square *from, Square *to, GameState* states) const noexcept
 {
-    MoveResult result;
     const QChar piece = from->piece();
+    const Pieces::Color color = Pieces::pieceColor(piece);
+    GameState& state = states[color];
+
     const bool isKing = piece == Pieces::WhiteKing || piece == Pieces::BlackKing;
     const bool isRook = piece == Pieces::WhiteRook || piece == Pieces::BlackRook;
-    const bool isPawn = piece == Pieces::WhitePawn || piece == Pieces::BlackPawn;
+    state.m_pawnMove = piece == Pieces::WhitePawn || piece == Pieces::BlackPawn;
+    bool enPassant = false;
+    bool promotion = false;
 
     if (isKing && to->col() - from->col() == 2) {
         Square* rookFrom = m_board.at(from->row(), 7);
@@ -48,22 +52,32 @@ MoveExecutor::MoveResult MoveExecutor::operator()(Square *from, Square *to) cons
         rookTo->setPiece(rookFrom->piece());
         rookFrom->setPiece(Pieces::Empty);
     }
-    else if (isPawn) {
+    else if (state.m_pawnMove) {
         const int d = piece == Pieces::BlackPawn? 1: -1;
         if (to->row() - from->row() == 2*d)
-            result.m_enPassantTarget = m_board.at(to->row() - 1*d, to->col());
-        else if (to->col() - from->col() != 0 && to->piece() == Pieces::Empty) // en passant
+            states[1 - color].m_enPassantTarget = m_board.at(to->row() - 1*d, to->col());
+        else if (enPassant = to->col() - from->col() != 0
+                && to->piece() == Pieces::Empty; enPassant) // en passant
             m_board.at(to->row() - 1*d, to->col())->setPiece(Pieces::Empty);
-        else if (to->row() << 1 == (d+1)*7) // promotion
-            result.m_promotedPawnSquare = to;
+        else if (promotion = to->row() << 1 == (d+1)*7; promotion) // promotion
+            state.m_promotedPawnSquare = to;
     }
+
+    if (const QChar targetPiece = to->piece(); targetPiece != Pieces::Empty)
+        state.m_captured.emplace(targetPiece);
+    else if (enPassant)
+        state.m_captured.emplace((color == Pieces::White)? Pieces::BlackPawn:Pieces::WhitePawn);
+    else
+        state.m_captured.reset();
+
+    state.m_kingSideCastleRight &= !(isKing || (isRook && from->col() == 7));
+    state.m_kingSideCastleRight &= !(isKing || (isRook && from->col() == 0));
+
+    if (isKing)
+        state.m_king = to;
+    if (!promotion)
+        state.m_promotedPawnSquare = nullptr;
+
     to->setPiece(piece);
     from->setPiece(Pieces::Empty);
-
-    result.m_revokeQueenSideCastleRight = isKing || (isRook && from->col() == 0);
-    result.m_revokeKingSideCastleRight = isKing || (isRook && from->col() == 7);
-    if (isKing)
-        result.m_newKingSquare = to;
-
-    return result;
 }

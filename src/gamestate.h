@@ -22,15 +22,21 @@
 
 #ifndef GAMESTATE_H
 #define GAMESTATE_H
+#include <QList>
 
 class Square;
 
 struct GameState
 {
     Square* m_king;
-    Square* m_enPassantTarget = nullptr;
     bool m_kingSideCastleRight = true;
     bool m_queenSideCastleRight = true;
+    QList<Square*> m_lastSquares;
+    // last move
+    bool m_pawnMove = false;
+    Square* m_enPassantTarget = nullptr;
+    Square* m_promotedPawnSquare = nullptr;
+    std::optional<QChar> m_captured;
 };
 
 #endif // GAMESTATE_H

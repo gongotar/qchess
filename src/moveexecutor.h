@@ -23,6 +23,8 @@
 #ifndef MOVEEXECUTOR_H
 #define MOVEEXECUTOR_H
 
+#include <QChar>
+
 class Board;
 class Square;
 class GameState;
@@ -30,17 +32,8 @@ class GameState;
 class MoveExecutor
 {
 public:
-
-    struct MoveResult {
-        bool m_revokeQueenSideCastleRight = false;
-        bool m_revokeKingSideCastleRight = false;
-        Square* m_newKingSquare = nullptr;
-        Square* m_promotedPawnSquare = nullptr;
-        Square* m_enPassantTarget = nullptr;
-    };
-
     MoveExecutor(const Board& board);
-    MoveResult operator() (Square* from, Square* to) const noexcept;
+    void operator() (Square* from, Square* to, GameState* states) const noexcept;
 
 private:
     const Board& m_board;

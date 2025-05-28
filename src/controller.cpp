@@ -76,16 +76,9 @@ void Controller::selectOrMovePiece(int row, int col)
         return;
     }
     else if (m_from) {
-        MoveExecutor::MoveResult res = m_moveExec(m_from, selected);
+        m_moveExec(m_from, selected, m_states);
 
-        // update state
-        state.m_kingSideCastleRight &= !res.m_revokeKingSideCastleRight;
-        state.m_queenSideCastleRight &= !res.m_revokeQueenSideCastleRight;
-        m_states[1-m_turnColor].m_enPassantTarget = res.m_enPassantTarget;
-        state.m_enPassantTarget = nullptr;
-        if (res.m_newKingSquare)
-            state.m_king = res.m_newKingSquare;
-        if (const Square* p = res.m_promotedPawnSquare; p)
+        if (const Square* p = state.m_promotedPawnSquare; p)
             emit promotePawn(p->row(), p->col(), promotionChoices(m_turnColor));
         // update ui
         m_from->setHighlight(true);
