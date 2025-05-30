@@ -23,11 +23,11 @@
 #ifndef GAMESTATE_H
 #define GAMESTATE_H
 #include <QList>
+#include "pieces.h"
 
 class Square;
 
-struct GameState
-{
+struct PlayerState {
     Square* m_king;
     bool m_kingSideCastleRight = true;
     bool m_queenSideCastleRight = true;
@@ -37,7 +37,32 @@ struct GameState
     std::optional<QChar> m_captured;
     // last moves
     int m_noPawnMoveOrCapture = 0;
-    QList<std::pair<Square*, Square*>> m_lastMoves;
+    QList<std::pair<Square*, Square*>> m_moves;
+};
+
+
+struct GameState
+{
+    PlayerState m_white;
+    PlayerState m_black;
+    Pieces::Color m_turnColor = Pieces::White;
+    void switchTurn() noexcept {
+        m_turnColor = static_cast<Pieces::Color>(
+            1 - static_cast<int>(m_turnColor));
+    }
+    PlayerState& playerState() noexcept {
+        return (m_turnColor == Pieces::White) ? m_white: m_black;
+    }
+    PlayerState& opponentState() noexcept {
+        return (m_turnColor == Pieces::White) ? m_black: m_white;
+    }
+
+    const PlayerState& playerState() const noexcept {
+        return (m_turnColor == Pieces::White) ? m_white: m_black;
+    }
+    const PlayerState& opponentState() const noexcept {
+        return (m_turnColor == Pieces::White) ? m_black: m_white;
+    }
 };
 
 #endif // GAMESTATE_H

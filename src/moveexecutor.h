@@ -33,7 +33,7 @@ class MoveExecutor
 {
 public:
     MoveExecutor(const Board& board);
-    void operator() (Square* from, Square* to, GameState* states) const noexcept;
+    void operator() (Square* from, Square* to, GameState& states) const noexcept;
 
 private:
     const Board& m_board;

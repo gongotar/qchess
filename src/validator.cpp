@@ -108,7 +108,7 @@ namespace {
     };
 }
 
-// draw by repitition
+// check for endgame in background
 // timer
 // format choice
 // color choice
@@ -215,7 +215,7 @@ bool Validator::isPathClear(const Square *from, const Square *to) const noexcept
     return true;
 }
 
-bool Validator::hasLegalTargets(const GameState &state) const
+bool Validator::hasLegalTargets(const PlayerState &state) const
 {
     const Pieces::Color color = Pieces::pieceColor(state.m_king->piece());
     for (int row = 0; row < 8; ++row)
@@ -227,13 +227,43 @@ bool Validator::hasLegalTargets(const GameState &state) const
     return false;
 }
 
-bool Validator::isRepitition(const GameState& myState, const GameState& opponentState) const
+bool Validator::isRepetition(const GameState& state) const noexcept
 {
-    return false;
+    const auto& playerMoves = state.playerState().m_moves;
+    const auto& opponentMoves = state.opponentState().m_moves;
+
+    const auto np = playerMoves.size();
+    const auto no = opponentMoves.size();
+    if (np < 4 || no < 4)
+        return false;
+
+    Square* playerPrevSquare = playerMoves.back().first;
+    Square* opponentPrevSquare = opponentMoves.back().first;
+
+    const Square* playerRepeatedSquare = playerMoves.back().second;
+    const Square* opponentRepeatedSquare = opponentMoves.back().second;
+    for (int i = 2; i <= 4; i++) {
+        const auto& playerMove = playerMoves[np - i];
+        if (playerMove.second != playerPrevSquare)
+            return false;
+        const auto& opponentMove = opponentMoves[no - i];
+        if (opponentMove.second != opponentPrevSquare)
+            return false;
+        if ((i & 0x1) == 0) {
+            if (playerRepeatedSquare != playerMove.first)
+                return false;
+            if (opponentRepeatedSquare != opponentMove.first)
+                return false;
+        }
+        playerPrevSquare = playerMove.first;
+        opponentPrevSquare = opponentMove.first;
+    }
+
+    return true;
 }
 
 template <bool stopAtFirst>
-QSet<Square *> Validator::getLegalTargets(Square *from, const GameState& state) const
+QSet<Square *> Validator::getLegalTargets(Square *from, const PlayerState& state) const
 {
     QSet<Square*> moves;
 
@@ -378,21 +408,21 @@ QSet<Square *> Validator::getLegalTargets(Square *from, const GameState& state) 
     return moves;
 }
 
-Validator::GameOutcome Validator::evaluateGameOutcome(const GameState &myState,
-                                                      const GameState& opponentState) const
+Validator::GameOutcome Validator::evaluateGameOutcome(const GameState &state) const
 {
-    if (const bool moves = hasLegalTargets(opponentState); !moves) {
-        if (isInCheck(opponentState.m_king))
+    if (const bool moves = hasLegalTargets(state.opponentState()); !moves) {
+        if (isInCheck(state.opponentState().m_king))
             return GameOutcome::CheckMate;
         return GameOutcome::StaleMate;
     }
-    else if (myState.m_noPawnMoveOrCapture == 50)
+    else if (state.playerState().m_noPawnMoveOrCapture == 50)
         return GameOutcome::DrawBy50MoveRule;
-    else if (isRepitition(myState, opponentState))
+    else if (isRepetition(state))
+        return GameOutcome::DrawByRepetition;
     return GameOutcome::Ongoing;
 }
 
 template QSet<Square*>
-Validator::getLegalTargets<true>(Square* from, const GameState& state) const;
+Validator::getLegalTargets<true>(Square* from, const PlayerState& state) const;
 template QSet<Square*>
-Validator::getLegalTargets<false>(Square* from, const GameState& state) const;
+Validator::getLegalTargets<false>(Square* from, const PlayerState& state) const;

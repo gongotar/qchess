@@ -26,7 +26,6 @@
 #include "board.h"
 #include "gamestate.h"
 #include "moveexecutor.h"
-#include "pieces.h"
 #include "validator.h"
 
 #include <QObject>
@@ -60,8 +59,7 @@ private:
     Square* m_from;
     std::optional<std::pair<Square*, Square*>> m_prevMove;
     QSet <Square*> m_targets;
-    GameState m_states[2];
-    Pieces::Color m_turnColor = Pieces::Color::White;
+    GameState m_state;
 };
 
 #endif // CONTROLLER_H

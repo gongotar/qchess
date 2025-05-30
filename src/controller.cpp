@@ -45,8 +45,8 @@ Controller::Controller(QObject *parent) :
     m_validator(m_board),
     m_moveExec(m_board)
 {
-    m_states[Pieces::White].m_king = m_board.at(7, 4);
-    m_states[Pieces::Black].m_king = m_board.at(0, 4);
+    m_state.m_white.m_king = m_board.at(7, 4);
+    m_state.m_black.m_king = m_board.at(0, 4);
 }
 
 void Controller::selectOrMovePiece(int row, int col)
@@ -62,10 +62,10 @@ void Controller::selectOrMovePiece(int row, int col)
         m_from->setIsSelected(false);
 
     Square* selected = m_board.at(row, col);
-    GameState& state = m_states[m_turnColor];
+    PlayerState& state = m_state.playerState();
 
     if (!m_from || !m_targets.contains(selected)) {
-        if (Pieces::pieceColor(selected->piece()) != m_turnColor)
+        if (Pieces::pieceColor(selected->piece()) != m_state.m_turnColor)
             return;
         m_targets = m_validator.getLegalTargets(selected, state);
         m_from = selected;
@@ -76,18 +76,19 @@ void Controller::selectOrMovePiece(int row, int col)
         return;
     }
     else if (m_from) {
-        m_moveExec(m_from, selected, m_states);
+        m_moveExec(m_from, selected, m_state);
 
         if (const Square* p = state.m_promotedPawnSquare; p)
-            emit promotePawn(p->row(), p->col(), promotionChoices(m_turnColor));
+            emit promotePawn(p->row(), p->col(),
+                             promotionChoices(m_state.m_turnColor));
         // update ui
         m_from->setHighlight(true);
         selected->setHighlight(true);
         m_prevMove.emplace(m_from, selected);
 
-        handleGameOutCome(m_validator.evaluateGameOutcome(m_states[1-m_turnColor]));
+        handleGameOutCome(m_validator.evaluateGameOutcome(m_state));
 
-        m_turnColor = static_cast<Pieces::Color>(1 - static_cast<int>(m_turnColor));
+        m_state.switchTurn();
     }
     m_from = nullptr;
     m_targets.clear();
@@ -100,14 +101,14 @@ void Controller::promotePawnTo(int row, int col, const QChar &piece) {
 void Controller::restartGame()
 {
     m_board.resetBoard();
-    m_states[Pieces::White] = GameState{};
-    m_states[Pieces::Black] = GameState{};
-    m_states[Pieces::White].m_king = m_board.at(7, 4);
-    m_states[Pieces::Black].m_king = m_board.at(0, 4);
     m_from = nullptr;
     m_prevMove.reset();
     m_targets.clear();
-    m_turnColor = Pieces::White;
+
+    m_state = GameState{};
+    m_state.m_white.m_king = m_board.at(7, 4);
+    m_state.m_black.m_king = m_board.at(0, 4);
+
 }
 
 void Controller::handleGameOutCome(Validator::GameOutcome outCome)
@@ -118,7 +119,7 @@ void Controller::handleGameOutCome(Validator::GameOutcome outCome)
     case Validator::CheckMate:
         emit gameOver(QLatin1StringView(
             "Checkmate! %1 wins. Would you like to start a new game?")
-            .arg(m_turnColor == Pieces::White ? "White" : "Black"));
+            .arg(m_state.m_turnColor == Pieces::White ? "White" : "Black"));
         return;
     case Validator::StaleMate:
         emit gameOver("Stalemate! Would you like to start a new game?");
