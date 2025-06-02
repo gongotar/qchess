@@ -20,22 +20,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef MOVEEXECUTOR_H
-#define MOVEEXECUTOR_H
+import QtQuick
+import QtQuick.Controls
 
-#include <QChar>
+MenuBar {
+    id: chessMenu
+    Menu {
+        title: "Menu"
+        Menu {
+            title: "New Game"
 
-class Board;
-class Square;
-class GameState;
+            MenuItem {
+                text: "Play as White"
+                onTriggered: Controller.restartGame()
 
-class MoveExecutor
-{
-public:
-    MoveExecutor(const Board& board);
-    void operator() (Square* from, Square* to, GameState& states, bool flipped) const noexcept;
-private:
-    const Board& m_board;
-};
+            }
+            MenuItem {
+                text: "Play as Black"
+                onTriggered: Controller.restartGame(false)
+            }
+        }
+        MenuItem {
+            text: "Flip Board"
+            onTriggered: Controller.flipBoard()
+        }
 
-#endif // MOVEEXECUTOR_H
+    }
+}

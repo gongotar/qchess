@@ -41,7 +41,6 @@ public:
     QVariant data(const QModelIndex &index, int role) const noexcept override;
     QHash<int, QByteArray> roleNames() const noexcept override;
 
-
     Square* at(int row, int col) const noexcept {
         return m_squares[row][col];
     }

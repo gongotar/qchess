@@ -26,24 +26,24 @@
 #include "square.h"
 #include "validator.h"
 
-#define APPEND_IF_NOT_IN_CHECK(target)                    \
-do {                                                      \
-    if (!isInCheck(from, target, state.m_king)) {         \
-        moves.insert(target);                             \
-        if constexpr (stopAtFirst)                        \
-            return moves;                                 \
-    }                                                     \
+#define APPEND_IF_NOT_IN_CHECK(target)                     \
+do {                                                       \
+    if (!isInCheck(from, target, state.m_king, flipped)) { \
+        moves.insert(target);                              \
+        if constexpr (stopAtFirst)                         \
+            return moves;                                  \
+    }                                                      \
 } while (0)
 
 namespace {
 
-    bool canThreaten(const QChar& piece, const std::pair<int, int>& dir, int distance) noexcept
+    bool canThreaten(const QChar& piece, const std::pair<int, int>& dir, int distance, bool flipped) noexcept
     {
         switch (piece.unicode()) {
         case Pieces::WhitePawnCode:
-            return dir.first == 1 && dir.second != 0 && distance == 1;
+            return dir.first == (flipped? -1:1) && dir.second != 0 && distance == 1;
         case Pieces::BlackPawnCode:
-            return dir.first == -1 && dir.second != 0 && distance == 1;
+            return dir.first == (flipped? 1:-1) && dir.second != 0 && distance == 1;
         case Pieces::BlackBishopCode:
         case Pieces::WhiteBishopCode:
             return dir.first != 0 && dir.second != 0;
@@ -68,22 +68,24 @@ namespace {
         const Board& m_board;
         Square* m_king;
         const QChar m_to_piece;
+        const int m_dir;
     public:
-        Simulator(Square* from, Square* to, Square* king, const Board& board):
+        Simulator(Square* from, Square* to, Square* king, const Board& board, bool flipped):
             m_from(from),
             m_to(to),
-            m_king (king),
             m_board(board),
-            m_to_piece(to->piece())
+            m_king(king),
+            m_to_piece(to->piece()),
+            m_dir(flipped?-1:1)
         {
             if (from == king)
                 m_king = to;
-            else if (from->piece() == Pieces::BlackPawn
+            else if (from->piece() == Pieces::BlackPawn // enpassant
                      && (to->col() - from->col() != 0 && to->piece() == Pieces::Empty))
-                m_board.at(to->row() - 1, to->col())->setPieceQuitely(Pieces::Empty);
-            else if (from->piece() == Pieces::WhitePawn
+                m_board.at(to->row() - m_dir, to->col())->setPieceQuitely(Pieces::Empty);
+            else if (from->piece() == Pieces::WhitePawn // enpassant
                      && (to->col() - from->col() != 0 && to->piece() == Pieces::Empty))
-                m_board.at(to->row() + 1, to->col())->setPieceQuitely(Pieces::Empty);
+                m_board.at(to->row() + m_dir, to->col())->setPieceQuitely(Pieces::Empty);
             to->setPieceQuitely(from->piece());
             if (from != to)
                 from->setPieceQuitely(Pieces::Empty);
@@ -100,26 +102,25 @@ namespace {
             m_to->setPieceQuitely(m_to_piece);
             if (m_from->piece() == Pieces::BlackPawn
                      && (m_to->col() - m_from->col() != 0 && m_to->piece() == Pieces::Empty))
-                m_board.at(m_to->row() - 1, m_to->col())->setPieceQuitely(Pieces::WhitePawn);
+                m_board.at(m_to->row() - m_dir, m_to->col())->setPieceQuitely(Pieces::WhitePawn);
             else if (m_from->piece() == Pieces::WhitePawn
                      && (m_to->col() - m_from->col() != 0 && m_to->piece() == Pieces::Empty))
-                m_board.at(m_to->row() + 1, m_to->col())->setPieceQuitely(Pieces::BlackPawn);
+                m_board.at(m_to->row() + m_dir, m_to->col())->setPieceQuitely(Pieces::BlackPawn);
         }
     };
 }
 
 // check for endgame in background
-// timer
-// format choice
-// color choice
-// flip board
+// label board
 // taken pieces
 // count non taken piees, optimze mate calculation
+// timer
+// format choice
 // highlight when trying to move in check
 // undo
 // sounds
 
-bool Validator::isInCheck(const Square *king) const noexcept
+bool Validator::isInCheck(const Square *king, bool flipped) const noexcept
 {
     const int kingRow = king->row();
     const int kingCol = king->col();
@@ -143,7 +144,7 @@ bool Validator::isInCheck(const Square *king) const noexcept
             const QChar piece = m_board.at(r, c)->piece();
             if (piece != Pieces::Empty) {
                 if (Pieces::pieceColor(piece) != kingColor)
-                    if (canThreaten(piece, dir, distance))
+                    if (canThreaten(piece, dir, distance, flipped))
                         return true;
                 break;
             }
@@ -173,13 +174,13 @@ bool Validator::isInCheck(const Square *king) const noexcept
     return false;
 }
 
-bool Validator::isInCheck (Square* from, Square* to, Square* king) const noexcept
+bool Validator::isInCheck (Square* from, Square* to, Square* king, bool flipped) const noexcept
 {
-    Simulator sim(from, to, king, m_board);
-    return isInCheck(sim.king());
+    Simulator sim(from, to, king, m_board, flipped);
+    return isInCheck(sim.king(), flipped);
 }
 
-bool Validator::isCastlePathInCheck(Square *king, int direction) const noexcept
+bool Validator::isCastlePathInCheck(Square *king, int direction, bool flipped) const noexcept
 {
     const Square* rook = m_board.at(king->row(), direction > 0? 7: 0);
     const int col1 = rook->col();
@@ -187,7 +188,7 @@ bool Validator::isCastlePathInCheck(Square *king, int direction) const noexcept
     const int step = col2 > col1? 1:-1;
     for (int i = col1 + step; i != col2; i+=step) {
         Square* movedKing = m_board.at(king->row(), i);
-        if (isInCheck(king, movedKing, king))
+        if (isInCheck(king, movedKing, king, flipped))
             return true;
     }
     return false;
@@ -215,14 +216,14 @@ bool Validator::isPathClear(const Square *from, const Square *to) const noexcept
     return true;
 }
 
-bool Validator::hasLegalTargets(const PlayerState &state) const
+bool Validator::hasLegalTargets(const PlayerState &state, bool flipped) const
 {
     const Pieces::Color color = Pieces::pieceColor(state.m_king->piece());
     for (int row = 0; row < 8; ++row)
         for (int col = 0; col < 8; ++col)
             if (Square* sq = m_board.at(row, col);
                 Pieces::pieceColor(sq->piece()) == color)
-                if (!getLegalTargets<true>(sq, state).empty())
+                if (!getLegalTargets<true>(sq, state, flipped).empty())
                     return true;
     return false;
 }
@@ -263,7 +264,7 @@ bool Validator::isRepetition(const GameState& state) const noexcept
 }
 
 template <bool stopAtFirst>
-QSet<Square *> Validator::getLegalTargets(Square *from, const PlayerState& state) const
+QSet<Square *> Validator::getLegalTargets(Square *from, const PlayerState& state, bool flipped) const
 {
     QSet<Square*> moves;
 
@@ -288,8 +289,8 @@ QSet<Square *> Validator::getLegalTargets(Square *from, const PlayerState& state
     case Pieces::WhitePawnCode:
     case Pieces::BlackPawnCode:
     {
-        const int direction = isWhite ? -1 : 1;
-        const int startRow = isWhite ? 6 : 1;
+        const int direction = isWhite == flipped ? 1 : -1;
+        const int startRow = isWhite == flipped ? 1 : 6;
 
         // One forward
         if (Square *target = m_board.at(row + direction, col);
@@ -390,15 +391,15 @@ QSet<Square *> Validator::getLegalTargets(Square *from, const PlayerState& state
 
         const bool testCheck = (state.m_kingSideCastleRight ||
                                 state.m_queenSideCastleRight)
-                               && isInCheck(from);
+                               && isInCheck(from, flipped);
         if (state.m_kingSideCastleRight && !testCheck &&
             isPathClear(from, m_board.at(row, 7)) &&
-            !isCastlePathInCheck(state.m_king, 1)) {
+            !isCastlePathInCheck(state.m_king, 1, flipped)) {
             APPEND_IF_NOT_IN_CHECK(m_board.at(row, 6));
         }
         if (state.m_queenSideCastleRight && !testCheck &&
             isPathClear(from, m_board.at(row, 0)) &&
-            !isCastlePathInCheck(state.m_king, -1)) {
+            !isCastlePathInCheck(state.m_king, -1, flipped)) {
             APPEND_IF_NOT_IN_CHECK(m_board.at(row, 2));
         }
         break;
@@ -408,10 +409,10 @@ QSet<Square *> Validator::getLegalTargets(Square *from, const PlayerState& state
     return moves;
 }
 
-Validator::GameOutcome Validator::evaluateGameOutcome(const GameState &state) const
+Validator::GameOutcome Validator::evaluateGameOutcome(const GameState &state, bool flipped) const
 {
-    if (const bool moves = hasLegalTargets(state.opponentState()); !moves) {
-        if (isInCheck(state.opponentState().m_king))
+    if (const bool moves = hasLegalTargets(state.opponentState(), flipped); !moves) {
+        if (isInCheck(state.opponentState().m_king, flipped))
             return GameOutcome::CheckMate;
         return GameOutcome::StaleMate;
     }
@@ -423,6 +424,6 @@ Validator::GameOutcome Validator::evaluateGameOutcome(const GameState &state) co
 }
 
 template QSet<Square*>
-Validator::getLegalTargets<true>(Square* from, const PlayerState& state) const;
+Validator::getLegalTargets<true>(Square* from, const PlayerState& state, bool flipped) const;
 template QSet<Square*>
-Validator::getLegalTargets<false>(Square* from, const PlayerState& state) const;
+Validator::getLegalTargets<false>(Square* from, const PlayerState& state, bool flipped) const;

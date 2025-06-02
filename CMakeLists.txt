@@ -39,8 +39,6 @@ target_include_directories(appqchess PRIVATE src)
 qt_add_qml_module(appqchess
     URI qchess
     VERSION 1.0
-    QML_FILES
-        qml/Main.qml
     SOURCES
         src/controller.cpp
         src/controller.h
@@ -55,9 +53,12 @@ qt_add_qml_module(appqchess
         src/pieces.h
     RESOURCES
         resources/Alpha.ttf
-        QML_FILES qml/components/Promotion.qml
-        QML_FILES qml/components/GameOver.qml
-        QML_FILES qml/components/Board.qml
+    QML_FILES
+        qml/Main.qml
+        qml/components/Promotion.qml
+        qml/components/GameOver.qml
+        qml/components/Board.qml
+        qml/components/ChessMenu.qml
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

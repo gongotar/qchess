@@ -43,15 +43,15 @@ public:
 
     Validator(const Board& board): m_board (board) {}
     template <bool stopAtFirst = false>
-    QSet<Square*> getLegalTargets(Square* from, const PlayerState& state) const;
-    GameOutcome evaluateGameOutcome(const GameState& state) const;
+    QSet<Square*> getLegalTargets(Square* from, const PlayerState& state, bool flipped) const;
+    GameOutcome evaluateGameOutcome(const GameState& state, bool flipped) const;
 
 private:
-    bool isInCheck(const Square* king) const noexcept;
-    bool isInCheck(Square* from, Square* to, Square* king) const noexcept;
-    bool isCastlePathInCheck(Square* king, int direction) const noexcept;
+    bool isInCheck(const Square* king, bool flipped) const noexcept;
+    bool isInCheck(Square* from, Square* to, Square* king, bool flipped) const noexcept;
+    bool isCastlePathInCheck(Square* king, int direction, bool flipped) const noexcept;
     bool isPathClear(const Square* from, const Square* to) const noexcept;
-    bool hasLegalTargets(const PlayerState& state) const;
+    bool hasLegalTargets(const PlayerState& state, bool flipped) const;
     bool isRepetition(const GameState& state) const noexcept;
 
     const Board& m_board;

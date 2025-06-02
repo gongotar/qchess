@@ -43,7 +43,8 @@ public:
     Controller(QObject *parent = nullptr);
     Q_INVOKABLE void selectOrMovePiece(int row, int col);
     Q_INVOKABLE void promotePawnTo(int row, int col, const QChar& piece);
-    Q_INVOKABLE void restartGame();
+    Q_INVOKABLE void restartGame(bool white = true);
+    Q_INVOKABLE void flipBoard();
     Board* board() const noexcept {return const_cast<Board*>(&m_board);}
 
 signals:
@@ -60,6 +61,7 @@ private:
     std::optional<std::pair<Square*, Square*>> m_prevMove;
     QSet <Square*> m_targets;
     GameState m_state;
+    bool m_flipped = false;
 };
 
 #endif // CONTROLLER_H

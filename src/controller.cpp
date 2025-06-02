@@ -67,7 +67,7 @@ void Controller::selectOrMovePiece(int row, int col)
     if (!m_from || !m_targets.contains(selected)) {
         if (Pieces::pieceColor(selected->piece()) != m_state.m_turnColor)
             return;
-        m_targets = m_validator.getLegalTargets(selected, state);
+        m_targets = m_validator.getLegalTargets(selected, state, m_flipped);
         m_from = selected;
 
         for (Square* sq : std::as_const(m_targets))
@@ -76,7 +76,7 @@ void Controller::selectOrMovePiece(int row, int col)
         return;
     }
     else if (m_from) {
-        m_moveExec(m_from, selected, m_state);
+        m_moveExec(m_from, selected, m_state, m_flipped);
 
         if (const Square* p = state.m_promotedPawnSquare; p)
             emit promotePawn(p->row(), p->col(),
@@ -86,7 +86,7 @@ void Controller::selectOrMovePiece(int row, int col)
         selected->setHighlight(true);
         m_prevMove.emplace(m_from, selected);
 
-        handleGameOutCome(m_validator.evaluateGameOutcome(m_state));
+        handleGameOutCome(m_validator.evaluateGameOutcome(m_state, m_flipped));
 
         m_state.switchTurn();
     }
@@ -98,17 +98,61 @@ void Controller::promotePawnTo(int row, int col, const QChar &piece) {
     m_board.at(row, col)->setPiece(piece);
 }
 
-void Controller::restartGame()
+void Controller::restartGame(bool white)
 {
     m_board.resetBoard();
     m_from = nullptr;
     m_prevMove.reset();
     m_targets.clear();
+    m_flipped = false;
 
     m_state = GameState{};
     m_state.m_white.m_king = m_board.at(7, 4);
     m_state.m_black.m_king = m_board.at(0, 4);
+    if (!white) {
+        flipBoard();
+        m_state.switchTurn();
+    }
+}
 
+void Controller::flipBoard()
+{
+    QChar tmpPiece;
+    for (int row = 0; row < 4; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            Square* up = m_board.at(row,col);
+            Square* down = m_board.at(7 - row,col);
+            tmpPiece = up->piece();
+            up->setPiece(down->piece());
+            down->setPiece(tmpPiece);
+            // update king
+            if (tmpPiece == Pieces::WhiteKing)
+                m_state.m_white.m_king = down;
+            else if (tmpPiece == Pieces::BlackKing)
+                m_state.m_black.m_king = down;
+
+            if (up->piece() == Pieces::WhiteKing)
+                m_state.m_white.m_king = up;
+            else if (up->piece() == Pieces::BlackKing)
+                m_state.m_black.m_king = up;
+        }
+    }
+    auto flip = [this] (Square*& sq) {
+        if (sq)
+            sq = m_board.at(7 - sq->row(), sq->col());
+    };
+    // flip stored state
+    flip(m_state.m_white.m_enPassantTarget);
+    for (std::pair<Square*, Square*>& move: m_state.m_white.m_moves) {
+        flip(move.first);
+        flip(move.second);
+    }
+    flip(m_state.m_black.m_enPassantTarget);
+    for (std::pair<Square*, Square*>& move: m_state.m_black.m_moves) {
+        flip(move.first);
+        flip(move.second);
+    }
+    m_flipped = !m_flipped;
 }
 
 void Controller::handleGameOutCome(Validator::GameOutcome outCome)

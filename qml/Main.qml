@@ -39,6 +39,7 @@ Window {
         id: chessFont
         source: "qrc:/qt/qml/qchess/resources/Alpha.ttf"
     }
+    ChessMenu {}
     Promotion {}
     GameOver {}
     Board {}

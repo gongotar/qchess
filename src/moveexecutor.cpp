@@ -28,12 +28,13 @@
 
 MoveExecutor::MoveExecutor(const Board& board): m_board(board) {}
 
-void MoveExecutor::operator()(Square *from, Square *to, GameState& gameState) const noexcept
+void MoveExecutor::operator()(Square *from, Square *to, GameState& gameState, bool flipped) const noexcept
 {
     const QChar piece = from->piece();
     const Pieces::Color color = Pieces::pieceColor(piece);
     PlayerState& state = gameState.playerState();
 
+    const bool isWhite = color == Pieces::White;
     const bool isKing = piece == Pieces::WhiteKing || piece == Pieces::BlackKing;
     const bool isRook = piece == Pieces::WhiteRook || piece == Pieces::BlackRook;
     const bool isPawn = piece == Pieces::WhitePawn || piece == Pieces::BlackPawn;
@@ -53,7 +54,7 @@ void MoveExecutor::operator()(Square *from, Square *to, GameState& gameState) co
         rookFrom->setPiece(Pieces::Empty);
     }
     else if (isPawn) {
-        const int d = piece == Pieces::BlackPawn? 1: -1;
+        const int d = isWhite == flipped ? 1: -1;
         if (to->row() - from->row() == 2*d)
             gameState.opponentState().m_enPassantTarget = m_board.at(to->row() - 1*d, to->col());
         else if (enPassant = to->col() - from->col() != 0
@@ -66,7 +67,7 @@ void MoveExecutor::operator()(Square *from, Square *to, GameState& gameState) co
     if (const QChar targetPiece = to->piece(); targetPiece != Pieces::Empty)
         state.m_captured.emplace(targetPiece);
     else if (enPassant)
-        state.m_captured.emplace((color == Pieces::White)? Pieces::BlackPawn:Pieces::WhitePawn);
+        state.m_captured.emplace(isWhite? Pieces::BlackPawn:Pieces::WhitePawn);
     else
         state.m_captured.reset();
 
