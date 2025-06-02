@@ -42,7 +42,7 @@ MenuBar {
         }
         MenuItem {
             text: "Flip Board"
-            onTriggered: Controller.flipBoard()
+            onTriggered: Controller.flipped = !Controller.flipped
         }
 
     }

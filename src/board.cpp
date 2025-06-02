@@ -62,12 +62,21 @@ void Board::resetBoard()
                 m_squares[row][col] = square;
             }
             else {
-                Square* square = m_squares[row][col];
-                square->setPiece(piece);
-                square->setHighlight(false);
-                square->setIsSelected(false);
-                square->setLegalDestination(false);
+                m_squares[row][col]->setPiece(piece);
             }
+        }
+    }
+    clearSelections();
+}
+
+void Board::clearSelections() noexcept
+{
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            Square* square = m_squares[row][col];
+            square->setHighlight(false);
+            square->setIsSelected(false);
+            square->setLegalDestination(false);
         }
     }
 }

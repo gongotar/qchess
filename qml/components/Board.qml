@@ -44,5 +44,23 @@ GridView {
                 Controller.selectOrMovePiece(row, col)
             }
         }
+        Text {
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            anchors.margins: 0.03 * parent.width
+            text: String.fromCharCode('a'.charCodeAt(0) + col)
+            font.pixelSize: parent.width * 0.25
+            color: (row + col) % 2 === 0 ? "darkgoldenrod":"white"
+            visible: row == 7
+        }
+        Text {
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: 0.03 * parent.width
+            font.pixelSize: parent.width * 0.25
+            color: (row + col) % 2 === 0 ? "darkgoldenrod":"white"
+            text: Controller.flipped ? (row + 1) : (8 - row)
+            visible: col == 7
+        }
     }
 }

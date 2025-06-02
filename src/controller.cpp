@@ -152,7 +152,12 @@ void Controller::flipBoard()
         flip(move.first);
         flip(move.second);
     }
+    m_from = nullptr;
+    m_prevMove.reset();
+    m_targets.clear();
+    m_board.clearSelections();
     m_flipped = !m_flipped;
+    emit flippedChanged();
 }
 
 void Controller::handleGameOutCome(Validator::GameOutcome outCome)

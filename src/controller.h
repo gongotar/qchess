@@ -38,20 +38,22 @@ class Controller: public QObject
     QML_SINGLETON
     QML_ELEMENT
     Q_PROPERTY(Board* board READ board CONSTANT)
+    Q_PROPERTY(bool flipped READ flipped WRITE setFlipped NOTIFY flippedChanged)
 
 public:
     Controller(QObject *parent = nullptr);
     Q_INVOKABLE void selectOrMovePiece(int row, int col);
     Q_INVOKABLE void promotePawnTo(int row, int col, const QChar& piece);
     Q_INVOKABLE void restartGame(bool white = true);
-    Q_INVOKABLE void flipBoard();
     Board* board() const noexcept {return const_cast<Board*>(&m_board);}
-
+    bool flipped() const noexcept {return m_flipped;}
+    void setFlipped(bool val) {if (val != m_flipped) flipBoard();}
 signals:
     void promotePawn(int row, int col, const QList<QChar>& choices);
     void gameOver(const QString message);
-
+    void flippedChanged();
 private:
+    void flipBoard();
     void handleGameOutCome(Validator::GameOutcome outCome);
 
     Board m_board;

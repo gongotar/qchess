@@ -111,7 +111,6 @@ namespace {
 }
 
 // check for endgame in background
-// label board
 // taken pieces
 // count non taken piees, optimze mate calculation
 // timer
