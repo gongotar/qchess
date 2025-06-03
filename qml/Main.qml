@@ -35,12 +35,10 @@ Window {
     onHeightChanged: {
         width = height
     }
-    FontLoader {
-        id: chessFont
-        source: "qrc:/qt/qml/qchess/resources/Alpha.ttf"
-    }
+
+    BasicTheme {id: theme}
     ChessMenu {}
     Promotion {}
     GameOver {}
-    Board {}
+    BoardContainer {}
 }

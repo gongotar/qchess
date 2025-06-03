@@ -49,7 +49,7 @@ Popup {
             delegate: Text {
                 text: modelData
                 font.pixelSize: parent.width / 4
-                font.family: chessFont.name
+                font.family: theme.chessFont
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
