@@ -72,7 +72,7 @@ void MoveExecutor::operator()(Square *from, Square *to, GameState& gameState, bo
         state.m_captured.reset();
 
     state.m_kingSideCastleRight &= !(isKing || (isRook && from->col() == 7));
-    state.m_kingSideCastleRight &= !(isKing || (isRook && from->col() == 0));
+    state.m_queenSideCastleRight &= !(isKing || (isRook && from->col() == 0));
 
     if (isKing)
         state.m_king = to;
