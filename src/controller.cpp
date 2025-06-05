@@ -174,12 +174,12 @@ void Controller::handleGameOutCome(Validator::GameOutcome outCome)
         emit gameOver("Stalemate! Would you like to start a new game?");
         return;
     case Validator::DrawByRepetition:
-        emit gameOver("Draw by repitition! "
-                      "Would you like to start a new game?");
+        emit gameOver(
+            "Draw by repetition! Would you like to start a new game?");
         return;
     case Validator::DrawBy50MoveRule:
-        emit gameOver("Draw by the rule of fifty moves! "
-                      "Would you like to start a new game?");
+        emit gameOver(
+            "Draw by the rule of fifty moves! Would you like to start a new game?");
         return;
     }
 }
