@@ -10,6 +10,19 @@ Rectangle {
         boardContainer.height - borderMargin*2
     )
 
+    Text {
+        id: topCaptures
+        anchors.bottom: boardBorder.top
+        anchors.left: boardBorder.left
+        anchors.right: boardBorder.right
+        anchors.bottomMargin: 4
+        horizontalAlignment: Text.AlignHCenter
+        text: Controller.flipped ? Controller.whiteCaptures
+                                  : Controller.blackCaptures
+        font.pixelSize: boardBorder.width / 8 * 0.8
+        font.family: theme.chessFont
+    }
+
     Rectangle {
         id: boardBorder
         x: borderMargin
@@ -23,5 +36,18 @@ Rectangle {
             anchors.margins: 1
             Board {}
         }
+    }
+
+    Text {
+        id: bottomCaptures
+        anchors.top: boardBorder.bottom
+        anchors.left: boardBorder.left
+        anchors.right: boardBorder.right
+        anchors.topMargin: 4
+        horizontalAlignment: Text.AlignHCenter
+        text: Controller.flipped ? Controller.blackCaptures
+                                 : Controller.whiteCaptures
+        font.pixelSize: boardBorder.width / 8 * 0.8
+        font.family: theme.chessFont
     }
 }

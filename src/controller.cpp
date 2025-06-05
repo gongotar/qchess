@@ -76,7 +76,10 @@ void Controller::selectOrMovePiece(int row, int col)
         return;
     }
     else if (m_from) {
+        const int prevCapCount = state.m_captures.size();
         m_moveExec(m_from, selected, m_state, m_flipped);
+        if (state.m_captures.size() != prevCapCount)
+            emit capturesChanged();
 
         if (const Square* p = state.m_promotedPawnSquare; p)
             emit promotePawn(p->row(), p->col(),
@@ -109,6 +112,7 @@ void Controller::restartGame(bool white)
     m_state = GameState{};
     m_state.m_white.m_king = m_board.at(7, 4);
     m_state.m_black.m_king = m_board.at(0, 4);
+    emit capturesChanged();
     if (!white) {
         flipBoard();
         m_state.switchTurn();

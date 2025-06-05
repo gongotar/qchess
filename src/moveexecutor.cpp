@@ -64,12 +64,13 @@ void MoveExecutor::operator()(Square *from, Square *to, GameState& gameState, bo
             state.m_promotedPawnSquare = to;
     }
 
+    QChar capturedPiece = Pieces::Empty;
     if (const QChar targetPiece = to->piece(); targetPiece != Pieces::Empty)
-        state.m_captured.emplace(targetPiece);
+        capturedPiece = targetPiece;
     else if (enPassant)
-        state.m_captured.emplace(isWhite? Pieces::BlackPawn:Pieces::WhitePawn);
-    else
-        state.m_captured.reset();
+        capturedPiece = isWhite ? Pieces::BlackPawn : Pieces::WhitePawn;
+    if (capturedPiece != Pieces::Empty)
+        state.m_captures.append(capturedPiece);
 
     state.m_kingSideCastleRight &= !(isKing || (isRook && from->col() == 7));
     state.m_kingSideCastleRight &= !(isKing || (isRook && from->col() == 0));
@@ -79,8 +80,8 @@ void MoveExecutor::operator()(Square *from, Square *to, GameState& gameState, bo
     if (!promotion)
         state.m_promotedPawnSquare = nullptr;
 
-    if (!isPawn && !state.m_captured)
-        state.m_noPawnMoveOrCapture ++;
+    if (!isPawn && capturedPiece == Pieces::Empty)
+        state.m_noPawnMoveOrCapture++;
     else
         state.m_noPawnMoveOrCapture = 0;
 

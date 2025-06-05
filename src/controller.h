@@ -31,6 +31,7 @@
 #include <QObject>
 #include <qqmlintegration.h>
 #include <QSet>
+#include <QString>
 
 class Controller: public QObject
 {
@@ -39,6 +40,8 @@ class Controller: public QObject
     QML_ELEMENT
     Q_PROPERTY(Board* board READ board CONSTANT)
     Q_PROPERTY(bool flipped READ flipped WRITE setFlipped NOTIFY flippedChanged)
+    Q_PROPERTY(QString whiteCaptures READ whiteCaptures NOTIFY capturesChanged)
+    Q_PROPERTY(QString blackCaptures READ blackCaptures NOTIFY capturesChanged)
 
 public:
     Controller(QObject *parent = nullptr);
@@ -48,10 +51,13 @@ public:
     Board* board() const noexcept {return const_cast<Board*>(&m_board);}
     bool flipped() const noexcept {return m_flipped;}
     void setFlipped(bool val) {if (val != m_flipped) flipBoard();}
+    QString whiteCaptures() const noexcept { return m_state.m_white.m_captures; }
+    QString blackCaptures() const noexcept { return m_state.m_black.m_captures; }
 signals:
     void promotePawn(int row, int col, const QList<QChar>& choices);
     void gameOver(const QString message);
     void flippedChanged();
+    void capturesChanged();
 private:
     void flipBoard();
     void handleGameOutCome(Validator::GameOutcome outCome);
