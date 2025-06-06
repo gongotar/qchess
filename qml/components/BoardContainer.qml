@@ -5,17 +5,20 @@ Rectangle {
     anchors.fill: parent
     color: theme.containerColor
     property int borderMargin: 10
-    property real borderSize: Math.min(
+    property int spacing: 4
+    property real boardSize: Math.min(
         boardContainer.width  - borderMargin*2,
         boardContainer.height - borderMargin*2
+            - topCaptures.implicitHeight - bottomCaptures.implicitHeight
+            - spacing*2
     )
 
     Text {
         id: topCaptures
-        anchors.bottom: boardBorder.top
-        anchors.left: boardBorder.left
-        anchors.right: boardBorder.right
-        anchors.bottomMargin: 4
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.topMargin: borderMargin
         horizontalAlignment: Text.AlignHCenter
         text: Controller.flipped ? Controller.whiteCaptures
                                   : Controller.blackCaptures
@@ -25,14 +28,15 @@ Rectangle {
 
     Rectangle {
         id: boardBorder
-        x: borderMargin
-        y: borderMargin
-        width:  borderSize
-        height: borderSize
+        width: boardSize
+        height: boardSize
         color: theme.borderColor
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: topCaptures.bottom
+        anchors.topMargin: spacing
         Item {
             id: boardWrapper
-            anchors.fill: boardBorder
+            anchors.fill: parent
             anchors.margins: 1
             Board {}
         }
@@ -41,9 +45,11 @@ Rectangle {
     Text {
         id: bottomCaptures
         anchors.top: boardBorder.bottom
-        anchors.left: boardBorder.left
-        anchors.right: boardBorder.right
-        anchors.topMargin: 4
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.topMargin: spacing
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: borderMargin
         horizontalAlignment: Text.AlignHCenter
         text: Controller.flipped ? Controller.blackCaptures
                                  : Controller.whiteCaptures
