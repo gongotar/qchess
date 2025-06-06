@@ -16,10 +16,10 @@ Rectangle {
     Text {
         id: topCaptures
         anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
+        anchors.left: boardBorder.left
         anchors.topMargin: borderMargin
-        horizontalAlignment: Text.AlignHCenter
+        anchors.leftMargin: 0
+        horizontalAlignment: Text.AlignLeft
         text: Controller.flipped ? Controller.whiteCaptures
                                   : Controller.blackCaptures
         font.pixelSize: boardBorder.width / 8 * 0.8
@@ -45,12 +45,11 @@ Rectangle {
     Text {
         id: bottomCaptures
         anchors.top: boardBorder.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
+        anchors.right: boardBorder.right
         anchors.topMargin: spacing
         anchors.bottom: parent.bottom
         anchors.bottomMargin: borderMargin
-        horizontalAlignment: Text.AlignHCenter
+        horizontalAlignment: Text.AlignRight
         text: Controller.flipped ? Controller.blackCaptures
                                  : Controller.whiteCaptures
         font.pixelSize: boardBorder.width / 8 * 0.8
