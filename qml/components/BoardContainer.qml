@@ -6,12 +6,7 @@ Rectangle {
     color: theme.containerColor
     property int borderMargin: 10
     property int spacing: 4
-    property real boardSize: Math.min(
-        boardContainer.width  - borderMargin*2,
-        boardContainer.height - borderMargin*2
-            - topCaptures.implicitHeight - bottomCaptures.implicitHeight
-            - spacing*2
-    )
+    property real boardSize: boardContainer.width - borderMargin*2
 
     Text {
         id: topCaptures
