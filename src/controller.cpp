@@ -63,13 +63,25 @@ int captureValue(QChar p) noexcept
     }
 }
 
-QString sortedCaptures(const QString& list)
+QString sortedCaptures(QString s)
 {
-    QString s = list;
     std::sort(s.begin(), s.end(), [](const QChar& a, const QChar& b){
         return captureValue(a) > captureValue(b);
     });
     return s;
+}
+
+QString showCaptures(QString list)
+{
+    list = sortedCaptures(std::move(list));
+    if (list.size() <= 5)
+        return list;
+
+    int rest = 0;
+    for (int i = 5; i < list.size(); ++i)
+        rest += captureValue(list.at(i));
+    list.truncate(5);
+    return list + QLatin1Char(' ') + QLatin1Char('+') + QString::number(rest);
 }
 }
 
@@ -225,10 +237,10 @@ void Controller::handleGameOutCome(Validator::GameOutcome outCome)
 
 QString Controller::whiteCaptures() const noexcept
 {
-    return sortedCaptures(m_state.m_white.m_captures);
+    return showCaptures(m_state.m_white.m_captures);
 }
 
 QString Controller::blackCaptures() const noexcept
 {
-    return sortedCaptures(m_state.m_black.m_captures);
+    return showCaptures(m_state.m_black.m_captures);
 }
