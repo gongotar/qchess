@@ -39,21 +39,22 @@ QList<QChar> promotionChoices (Pieces::Color color)
                 Pieces::WhiteBishop};
 }
 
+// sort captures by standard chess piece values
 int captureValue(QChar p) noexcept
 {
     switch (ushort(p.unicode())) {
     case Pieces::WhiteQueenCode:
     case Pieces::BlackQueenCode:
-        return 5;
+        return 9;  // queen
     case Pieces::WhiteRookCode:
     case Pieces::BlackRookCode:
-        return 4;
+        return 5;  // rook
     case Pieces::WhiteBishopCode:
     case Pieces::BlackBishopCode:
-        return 3;
+        return 3;  // bishop
     case Pieces::WhiteKnightCode:
     case Pieces::BlackKnightCode:
-        return 2;
+        return 3;  // knight
     case Pieces::WhitePawnCode:
     case Pieces::BlackPawnCode:
         return 1;
