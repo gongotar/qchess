@@ -38,6 +38,38 @@ QList<QChar> promotionChoices (Pieces::Color color)
                 Pieces::WhiteKnight,
                 Pieces::WhiteBishop};
 }
+
+int captureValue(QChar p) noexcept
+{
+    switch (ushort(p.unicode())) {
+    case Pieces::WhiteQueenCode:
+    case Pieces::BlackQueenCode:
+        return 5;
+    case Pieces::WhiteRookCode:
+    case Pieces::BlackRookCode:
+        return 4;
+    case Pieces::WhiteBishopCode:
+    case Pieces::BlackBishopCode:
+        return 3;
+    case Pieces::WhiteKnightCode:
+    case Pieces::BlackKnightCode:
+        return 2;
+    case Pieces::WhitePawnCode:
+    case Pieces::BlackPawnCode:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
+QString sortedCaptures(const QString& list)
+{
+    QString s = list;
+    std::sort(s.begin(), s.end(), [](const QChar& a, const QChar& b){
+        return captureValue(a) > captureValue(b);
+    });
+    return s;
+}
 }
 
 Controller::Controller(QObject *parent) :
@@ -189,39 +221,6 @@ void Controller::handleGameOutCome(Validator::GameOutcome outCome)
     }
 }
 
-namespace {
-int captureValue(QChar p) noexcept
-{
-    switch (ushort(p.unicode())) {
-    case Pieces::WhiteQueenCode:
-    case Pieces::BlackQueenCode:
-        return 5;
-    case Pieces::WhiteRookCode:
-    case Pieces::BlackRookCode:
-        return 4;
-    case Pieces::WhiteBishopCode:
-    case Pieces::BlackBishopCode:
-        return 3;
-    case Pieces::WhiteKnightCode:
-    case Pieces::BlackKnightCode:
-        return 2;
-    case Pieces::WhitePawnCode:
-    case Pieces::BlackPawnCode:
-        return 1;
-    default:
-        return 0;
-    }
-}
-
-QString sortedCaptures(const QString& list)
-{
-    QString s = list;
-    std::sort(s.begin(), s.end(), [](const QChar& a, const QChar& b){
-        return captureValue(a) > captureValue(b);
-    });
-    return s;
-}
-}
 
 QString Controller::whiteCaptures() const noexcept
 {
