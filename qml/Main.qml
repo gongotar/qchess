@@ -28,12 +28,13 @@ Window {
     title: "Chess"
     visible: true
     width: 400
-    height: 400
+    height: 480
+    property int capSpace: 80
     onWidthChanged: {
-        height = width
+        height = width + capSpace
     }
     onHeightChanged: {
-        width = height
+        width = height - capSpace
     }
 
     BasicTheme {id: theme}
