@@ -51,8 +51,8 @@ public:
     Board* board() const noexcept {return const_cast<Board*>(&m_board);}
     bool flipped() const noexcept {return m_flipped;}
     void setFlipped(bool val) {if (val != m_flipped) flipBoard();}
-    QString whiteCaptures() const noexcept { return m_state.m_white.m_captures; }
-    QString blackCaptures() const noexcept { return m_state.m_black.m_captures; }
+    QString whiteCaptures() const noexcept;
+    QString blackCaptures() const noexcept;
 signals:
     void promotePawn(int row, int col, const QList<QChar>& choices);
     void gameOver(const QString message);

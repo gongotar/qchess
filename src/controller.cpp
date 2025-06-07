@@ -22,6 +22,7 @@
 
 #include "controller.h"
 #include "square.h"
+#include <algorithm>
 
 namespace {
 QList<QChar> promotionChoices (Pieces::Color color)
@@ -186,4 +187,48 @@ void Controller::handleGameOutCome(Validator::GameOutcome outCome)
                       "Would you like to start a new game?");
         return;
     }
+}
+
+namespace {
+int captureValue(QChar p) noexcept
+{
+    switch (ushort(p.unicode())) {
+    case Pieces::WhiteQueenCode:
+    case Pieces::BlackQueenCode:
+        return 5;
+    case Pieces::WhiteRookCode:
+    case Pieces::BlackRookCode:
+        return 4;
+    case Pieces::WhiteBishopCode:
+    case Pieces::BlackBishopCode:
+        return 3;
+    case Pieces::WhiteKnightCode:
+    case Pieces::BlackKnightCode:
+        return 2;
+    case Pieces::WhitePawnCode:
+    case Pieces::BlackPawnCode:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
+QString sortedCaptures(const QString& list)
+{
+    QString s = list;
+    std::sort(s.begin(), s.end(), [](const QChar& a, const QChar& b){
+        return captureValue(a) > captureValue(b);
+    });
+    return s;
+}
+}
+
+QString Controller::whiteCaptures() const noexcept
+{
+    return sortedCaptures(m_state.m_white.m_captures);
+}
+
+QString Controller::blackCaptures() const noexcept
+{
+    return sortedCaptures(m_state.m_black.m_captures);
 }
