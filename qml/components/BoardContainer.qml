@@ -28,8 +28,9 @@ Rectangle {
                                              : Controller.blackCaptureValue;
                 return v > 0 ? "+" + v : "";
             }
-            font.pixelSize: captureSize * 0.6
+            font.pixelSize: captureSize * 0.5
             color: theme.lightSquare
+            verticalAlignment: Text.AlignVCenter
         }
     }
 
@@ -70,8 +71,9 @@ Rectangle {
                                              : Controller.whiteCaptureValue;
                 return v > 0 ? "+" + v : "";
             }
-            font.pixelSize: captureSize * 0.6
+            font.pixelSize: captureSize * 0.5
             color: theme.lightSquare
+            verticalAlignment: Text.AlignVCenter
         }
     }
 }
