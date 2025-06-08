@@ -17,7 +17,6 @@ Item {
     // board BoardContainer
     property string containerColor      : "#b09030"
     property string borderColor         : "#404020"
-    property string captureValueColor   : "white"
 
     // font
     FontLoader {

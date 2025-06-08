@@ -30,7 +30,7 @@ Rectangle {
                 return v > 0 ? "+" + v : "";
             }
             font.pixelSize: captureSize * 0.5
-            color: theme.captureValueColor
+            color: Controller.flipped ? theme.darkSquare : theme.lightSquare
             verticalAlignment: Text.AlignVCenter
             anchors.verticalCenter: parent.verticalCenter
         }
@@ -75,7 +75,7 @@ Rectangle {
                 return v > 0 ? "+" + v : "";
             }
             font.pixelSize: captureSize * 0.5
-            color: theme.captureValueColor
+            color: Controller.flipped ? theme.lightSquare : theme.darkSquare
             verticalAlignment: Text.AlignVCenter
             anchors.verticalCenter: parent.verticalCenter
         }
