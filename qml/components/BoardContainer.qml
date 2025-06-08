@@ -21,6 +21,7 @@ Rectangle {
                                      : Controller.blackCapturePieces
             font.pixelSize: captureSize
             font.family: theme.chessFont
+            anchors.verticalCenter: parent.verticalCenter
         }
         Text {
             text: {
@@ -29,8 +30,9 @@ Rectangle {
                 return v > 0 ? "+" + v : "";
             }
             font.pixelSize: captureSize * 0.5
-            color: theme.lightSquare
+            color: theme.captureValueColor
             verticalAlignment: Text.AlignVCenter
+            anchors.verticalCenter: parent.verticalCenter
         }
     }
 
@@ -64,6 +66,7 @@ Rectangle {
                                      : Controller.whiteCapturePieces
             font.pixelSize: captureSize
             font.family: theme.chessFont
+            anchors.verticalCenter: parent.verticalCenter
         }
         Text {
             text: {
@@ -72,8 +75,9 @@ Rectangle {
                 return v > 0 ? "+" + v : "";
             }
             font.pixelSize: captureSize * 0.5
-            color: theme.lightSquare
+            color: theme.captureValueColor
             verticalAlignment: Text.AlignVCenter
+            anchors.verticalCenter: parent.verticalCenter
         }
     }
 }
