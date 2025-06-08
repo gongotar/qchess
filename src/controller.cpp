@@ -71,19 +71,23 @@ QString sortedCaptures(QString s)
     return s;
 }
 
+constexpr int kDisplayedCaptures = 5;
+
 QString capturePieces(QString list)
 {
     list = sortedCaptures(std::move(list));
-    if (list.size() > 5)
-        list.truncate(5);
+    if (list.size() > kDisplayedCaptures)
+        list.truncate(kDisplayedCaptures);
     return list;
 }
 
 int captureRemainder(QString list)
 {
+    if (list.size() <= kDisplayedCaptures)
+        return 0;
     list = sortedCaptures(std::move(list));
     int rest = 0;
-    for (int i = 5; i < list.size(); ++i)
+    for (int i = kDisplayedCaptures; i < list.size(); ++i)
         rest += captureValue(list.at(i));
     return rest;
 }
