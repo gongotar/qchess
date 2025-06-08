@@ -23,6 +23,7 @@
 #ifndef GAMESTATE_H
 #define GAMESTATE_H
 #include <QList>
+#include <QString>
 #include "pieces.h"
 
 class Square;
@@ -34,7 +35,7 @@ struct PlayerState {
     // last move
     Square* m_enPassantTarget = nullptr;
     Square* m_promotedPawnSquare = nullptr;
-    std::optional<QChar> m_captured;
+    QString m_captures;
     // last moves
     int m_noPawnMoveOrCapture = 0;
     QList<std::pair<Square*, Square*>> m_moves;

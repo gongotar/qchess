@@ -22,8 +22,11 @@
 
 #include "controller.h"
 #include "square.h"
+#include <algorithm>
 
 namespace {
+static constexpr int s_DisplayCaptures = 5;
+
 QList<QChar> promotionChoices (Pieces::Color color)
 {
     if (color == Pieces::Black)
@@ -36,6 +39,58 @@ QList<QChar> promotionChoices (Pieces::Color color)
                 Pieces::WhiteRook,
                 Pieces::WhiteKnight,
                 Pieces::WhiteBishop};
+}
+
+// sort captures by standard chess piece values
+int captureValue(QChar p) noexcept
+{
+    switch (ushort(p.unicode())) {
+    case Pieces::WhiteQueenCode:
+    case Pieces::BlackQueenCode:
+        return 9;  // queen
+    case Pieces::WhiteRookCode:
+    case Pieces::BlackRookCode:
+        return 5;  // rook
+    case Pieces::WhiteBishopCode:
+    case Pieces::BlackBishopCode:
+        return 3;  // bishop
+    case Pieces::WhiteKnightCode:
+    case Pieces::BlackKnightCode:
+        return 3;  // knight
+    case Pieces::WhitePawnCode:
+    case Pieces::BlackPawnCode:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
+QString sortedCaptures(QString s)
+{
+    std::sort(s.begin(), s.end(), [](const QChar& a, const QChar& b){
+        return captureValue(a) > captureValue(b);
+    });
+    return s;
+}
+
+
+QString capturePieces(QString list)
+{
+    list = sortedCaptures(std::move(list));
+    if (list.size() > s_DisplayCaptures)
+        list.truncate(s_DisplayCaptures);
+    return list;
+}
+
+int captureRemainder(QString list)
+{
+    if (list.size() <= s_DisplayCaptures)
+        return 0;
+    list = sortedCaptures(std::move(list));
+    int rest = 0;
+    for (int i = s_DisplayCaptures; i < list.size(); ++i)
+        rest += captureValue(list.at(i));
+    return rest;
 }
 }
 
@@ -76,7 +131,10 @@ void Controller::selectOrMovePiece(int row, int col)
         return;
     }
     else if (m_from) {
+        const int prevCapCount = state.m_captures.size();
         m_moveExec(m_from, selected, m_state, m_flipped);
+        if (state.m_captures.size() != prevCapCount)
+            emit capturesChanged();
 
         if (const Square* p = state.m_promotedPawnSquare; p)
             emit promotePawn(p->row(), p->col(),
@@ -109,6 +167,7 @@ void Controller::restartGame(bool white)
     m_state = GameState{};
     m_state.m_white.m_king = m_board.at(7, 4);
     m_state.m_black.m_king = m_board.at(0, 4);
+    emit capturesChanged();
     if (!white) {
         flipBoard();
         m_state.switchTurn();
@@ -182,4 +241,25 @@ void Controller::handleGameOutCome(Validator::GameOutcome outCome)
             "Draw by the rule of fifty moves! Would you like to start a new game?");
         return;
     }
+}
+
+
+QString Controller::whiteCapturePieces() const noexcept
+{
+    return capturePieces(m_state.m_white.m_captures);
+}
+
+int Controller::whiteCaptureValue() const noexcept
+{
+    return captureRemainder(m_state.m_white.m_captures);
+}
+
+QString Controller::blackCapturePieces() const noexcept
+{
+    return capturePieces(m_state.m_black.m_captures);
+}
+
+int Controller::blackCaptureValue() const noexcept
+{
+    return captureRemainder(m_state.m_black.m_captures);
 }
