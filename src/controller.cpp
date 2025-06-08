@@ -25,6 +25,8 @@
 #include <algorithm>
 
 namespace {
+static constexpr int s_DisplayCaptures = 5;
+
 QList<QChar> promotionChoices (Pieces::Color color)
 {
     if (color == Pieces::Black)
@@ -71,23 +73,22 @@ QString sortedCaptures(QString s)
     return s;
 }
 
-constexpr int kDisplayedCaptures = 5;
 
 QString capturePieces(QString list)
 {
     list = sortedCaptures(std::move(list));
-    if (list.size() > kDisplayedCaptures)
-        list.truncate(kDisplayedCaptures);
+    if (list.size() > s_DisplayCaptures)
+        list.truncate(s_DisplayCaptures);
     return list;
 }
 
 int captureRemainder(QString list)
 {
-    if (list.size() <= kDisplayedCaptures)
+    if (list.size() <= s_DisplayCaptures)
         return 0;
     list = sortedCaptures(std::move(list));
     int rest = 0;
-    for (int i = kDisplayedCaptures; i < list.size(); ++i)
+    for (int i = s_DisplayCaptures; i < list.size(); ++i)
         rest += captureValue(list.at(i));
     return rest;
 }
