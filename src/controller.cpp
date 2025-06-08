@@ -82,9 +82,6 @@ QString capturePieces(QString list)
 int captureRemainder(QString list)
 {
     list = sortedCaptures(std::move(list));
-    if (list.size() <= 5)
-        return 0;
-
     int rest = 0;
     for (int i = 5; i < list.size(); ++i)
         rest += captureValue(list.at(i));
