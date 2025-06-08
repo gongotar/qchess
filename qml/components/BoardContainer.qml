@@ -8,17 +8,26 @@ Rectangle {
     property int spacing: 4
     property real boardSize: boardContainer.width - borderMargin*2
 
-    Text {
+    Row {
         id: topCaptures
         anchors.top: parent.top
         anchors.left: boardBorder.left
         anchors.topMargin: borderMargin
-        anchors.leftMargin: 0
-        horizontalAlignment: Text.AlignLeft
-        text: Controller.flipped ? Controller.whiteCaptures
-                                  : Controller.blackCaptures
-        font.pixelSize: boardBorder.width / 8 * 0.8
-        font.family: theme.chessFont
+        spacing: 2
+        Text {
+            text: Controller.flipped ? Controller.whiteCapturePieces
+                                     : Controller.blackCapturePieces
+            font.pixelSize: boardBorder.width / 8 * 0.8
+            font.family: theme.chessFont
+        }
+        Text {
+            text: {
+                const v = Controller.flipped ? Controller.whiteCaptureValue
+                                             : Controller.blackCaptureValue;
+                return v > 0 ? "+" + v : "";
+            }
+            font.pixelSize: boardBorder.width / 8 * 0.8
+        }
     }
 
     Rectangle {
@@ -37,17 +46,27 @@ Rectangle {
         }
     }
 
-    Text {
+    Row {
         id: bottomCaptures
         anchors.top: boardBorder.bottom
         anchors.right: boardBorder.right
         anchors.topMargin: spacing
         anchors.bottom: parent.bottom
         anchors.bottomMargin: borderMargin
-        horizontalAlignment: Text.AlignRight
-        text: Controller.flipped ? Controller.blackCaptures
-                                 : Controller.whiteCaptures
-        font.pixelSize: boardBorder.width / 8 * 0.8
-        font.family: theme.chessFont
+        spacing: 2
+        Text {
+            text: Controller.flipped ? Controller.blackCapturePieces
+                                     : Controller.whiteCapturePieces
+            font.pixelSize: boardBorder.width / 8 * 0.8
+            font.family: theme.chessFont
+        }
+        Text {
+            text: {
+                const v = Controller.flipped ? Controller.blackCaptureValue
+                                             : Controller.whiteCaptureValue;
+                return v > 0 ? "+" + v : "";
+            }
+            font.pixelSize: boardBorder.width / 8 * 0.8
+        }
     }
 }
