@@ -7,6 +7,7 @@ Rectangle {
     property int borderMargin: 10
     property int spacing: 4
     property real boardSize: boardContainer.width - borderMargin*2
+    property real captureSize: boardSize / 8 * 0.8
 
     Row {
         id: topCaptures
@@ -14,10 +15,11 @@ Rectangle {
         anchors.left: boardBorder.left
         anchors.topMargin: borderMargin
         spacing: 2
+        height: captureSize
         Text {
             text: Controller.flipped ? Controller.whiteCapturePieces
                                      : Controller.blackCapturePieces
-            font.pixelSize: boardBorder.width / 8 * 0.8
+            font.pixelSize: captureSize
             font.family: theme.chessFont
         }
         Text {
@@ -26,7 +28,7 @@ Rectangle {
                                              : Controller.blackCaptureValue;
                 return v > 0 ? "+" + v : "";
             }
-            font.pixelSize: boardBorder.width / 8 * 0.8
+            font.pixelSize: captureSize
         }
     }
 
@@ -54,10 +56,11 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: borderMargin
         spacing: 2
+        height: captureSize
         Text {
             text: Controller.flipped ? Controller.blackCapturePieces
                                      : Controller.whiteCapturePieces
-            font.pixelSize: boardBorder.width / 8 * 0.8
+            font.pixelSize: captureSize
             font.family: theme.chessFont
         }
         Text {
@@ -66,7 +69,7 @@ Rectangle {
                                              : Controller.whiteCaptureValue;
                 return v > 0 ? "+" + v : "";
             }
-            font.pixelSize: boardBorder.width / 8 * 0.8
+            font.pixelSize: captureSize
         }
     }
 }
